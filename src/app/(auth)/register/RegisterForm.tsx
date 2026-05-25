@@ -47,7 +47,7 @@ export default function RegisterForm() {
             <label className={labelClass}>First Name</label>
             <input
               type="text"
-              placeholder="John"
+              placeholder="Enter First name"
               autoComplete="given-name"
               className={inputClass}
               {...register("firstName")}
@@ -60,7 +60,7 @@ export default function RegisterForm() {
             <label className={labelClass}>Last Name</label>
             <input
               type="text"
-              placeholder="Doe"
+              placeholder="Enter Last Name"
               autoComplete="family-name"
               className={inputClass}
               {...register("lastName")}
@@ -76,7 +76,7 @@ export default function RegisterForm() {
           <label className={labelClass}>Username</label>
           <input
             type="text"
-            placeholder="johndoe"
+            placeholder="Enter username"
             autoComplete="username"
             className={inputClass}
             {...register("username")}
