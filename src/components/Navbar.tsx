@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { getTokenCookie } from "@/lib/cookies";
 
-export default function Navbar() {
+export default async function Navbar() {
+  const token = await getTokenCookie();
+
   return (
     <nav className="flex items-center justify-between px-6 md:px-14 py-4 border-b border-white/5">
       <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
@@ -24,18 +27,22 @@ export default function Navbar() {
       </Link>
 
       <div className="flex items-center gap-4">
-        <Link
-          href="/login"
-          className="text-gray-300 hover:text-white text-sm transition-colors"
-        >
-          Log In
-        </Link>
-        <Link
-          href="/register"
-          className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-md transition-colors font-medium"
-        >
-          Sign Up
-        </Link>
+        {token ? null : (
+          <>
+            <Link
+              href="/login"
+              className="text-gray-300 hover:text-white text-sm transition-colors"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/register"
+              className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-md transition-colors font-medium"
+            >
+              Sign Up
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
