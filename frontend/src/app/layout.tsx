@@ -20,6 +20,8 @@ export const metadata: Metadata = {
     "Join the high-performance compute marketplace. Monetize your underutilized hardware or access scalable, reliable GPU infrastructure on demand.",
 };
 
+import { UserProvider } from "./context/UserContext";
+
 export default function RootLayout({
   children,
 }: {
@@ -30,7 +32,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-[#0c0d16] text-white`}
       >
-        {children}
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );
