@@ -20,6 +20,10 @@ app.use(morgan("combined")); // log all requests
 
 app.use("/api/v1/auth", userRoutes); // user related routes
 
+// Serve static files from public directory
+import path from "path";
+app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
+
 // global api handler (at the last)
 app.use(
     (req: Request, res: Response) => {

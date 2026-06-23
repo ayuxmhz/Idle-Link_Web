@@ -41,4 +41,62 @@ export class UserController {
             );
         }
     }
+
+    async whoami(req: Request, res: Response) {
+        try {
+            const user = req.user;
+            if (!user) {
+                return ApiResponseHelper.error(res, "User not found", 404);
+            }
+            return ApiResponseHelper.success(res, user, "User fetched successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
+
+    async updateProfile(req: Request, res: Response) {
+        try {
+            const user = req.user as any;
+            if (!user) {
+                return ApiResponseHelper.error(res, "Unauthorized", 401);
+            }
+            const updateData: any = { ...req.body };
+            
+            // Handle file upload
+            if (req.file) {
+                updateData.profilePicture = `/uploads/${req.file.filename}`;
+            }
+
+            const updatedUser = await userService.updateProfile(user._id, updateData);
+            return ApiResponseHelper.success(res, updatedUser, "Profile updated successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
+
+    async updatePassword(req: Request, res: Response) {
+        try {
+            const user = req.user as any;
+            if (!user) {
+                return ApiResponseHelper.error(res, "Unauthorized", 401);
+            }
+            
+            await userService.updatePassword(user._id, req.body);
+            return ApiResponseHelper.success(res, null, "Password updated successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(
+                res,
+                error.message || "Internal Server Error",
+                error.status || 500
+            );
+        }
+    }
 }

@@ -45,4 +45,28 @@ export class UserService {
         );
         return { user, token }
     }
+
+    async updateProfile(id: string, updateData: Partial<IUser>): Promise<IUser | null> {
+        const user = await userRepository.update(id, updateData);
+        if (!user) {
+            throw new HttpException(404, "User not found");
+        }
+        return user;
+    }
+
+    async updatePassword(id: string, passwordData: any): Promise<IUser | null> {
+        const user = await userRepository.getUserById(id);
+        if (!user) {
+            throw new HttpException(404, "User not found");
+        }
+        const isPasswordValid = await bycryptjs.compare(
+            passwordData.currentPassword,
+            user.password
+        );
+        if (!isPasswordValid) {
+            throw new HttpException(400, "Invalid current password");
+        }
+        const hashedPassword = await bycryptjs.hash(passwordData.newPassword, 10);
+        return await userRepository.update(id, { password: hashedPassword });
+    }
 }
