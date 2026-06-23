@@ -7,7 +7,7 @@ import { HttpException } from '../exceptions/http-exception';
 import { ApiResponseHelper } from '../utils/apihelper.util';
 
 declare global {
-    namespace Express {
+   namespace Express {
         interface Request {
             user?: Record<string, any> | IUser
         }
