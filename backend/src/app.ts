@@ -7,6 +7,14 @@ import morgan from "morgan";
 // routes
 import userRoutes from "./routes/user.route";
 import adminUserRoutes from "./routes/admin/user.route";
+import deviceRoutes from "./routes/device.route";
+import bookingRoutes from "./routes/booking.route";
+import transactionRoutes from "./routes/transaction.route";
+import adminDeviceRoutes from "./routes/admin/device.route";
+import adminTransactionRoutes from "./routes/admin/transaction.route";
+import adminStatsRoutes from "./routes/admin/stats.route";
+import esewaRoutes from "./routes/esewa.route";
+import matcherRoutes from "./routes/matcher.route";
 
 const app: Application = express();
 const corsOptions = {
@@ -21,6 +29,14 @@ app.use(morgan("combined")); // log all requests
 
 app.use("/api/v1/auth", userRoutes); // user related routes
 app.use("/api/v1/admin/users", adminUserRoutes); // admin user routes
+app.use("/api/v1/devices", deviceRoutes); // device listing routes
+app.use("/api/v1/bookings", bookingRoutes); // booking / job routes
+app.use("/api/v1/transactions", transactionRoutes); // wallet transaction routes
+app.use("/api/v1/admin/devices", adminDeviceRoutes); // admin device management routes
+app.use("/api/v1/admin/transactions", adminTransactionRoutes); // admin transaction routes
+app.use("/api/v1/admin/stats", adminStatsRoutes); // admin dashboard stats routes
+app.use("/api/v1/transactions/esewa", esewaRoutes); // eSewa payment routes
+app.use("/api/v1/matcher", matcherRoutes); // AI job matcher routes
 
 // Serve static files from public directory
 import path from "path";
