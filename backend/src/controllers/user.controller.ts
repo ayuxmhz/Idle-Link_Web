@@ -64,8 +64,14 @@ export class UserController {
             if (!user) {
                 return ApiResponseHelper.error(res, "Unauthorized", 401);
             }
-            const updateData: any = { ...req.body };
-            
+            const updateData: any = {};
+
+            // Allowed text fields
+            if (req.body.firstName !== undefined) updateData.firstName = req.body.firstName;
+            if (req.body.lastName !== undefined) updateData.lastName = req.body.lastName;
+            if (req.body.email !== undefined) updateData.email = req.body.email;
+            if (req.body.phoneNumber !== undefined) updateData.phoneNumber = req.body.phoneNumber;
+
             // Handle file upload
             if (req.file) {
                 updateData.profilePicture = `/uploads/${req.file.filename}`;
@@ -97,6 +103,60 @@ export class UserController {
                 error.message || "Internal Server Error",
                 error.status || 500
             );
+        }
+    }
+
+    async sendEmailOtp(req: Request, res: Response) {
+        try {
+            const user = req.user as any;
+            if (!user) return ApiResponseHelper.error(res, "Unauthorized", 401);
+            if (!user.email) return ApiResponseHelper.error(res, "No email address found", 400);
+
+            const code = await userService.sendEmailOtp(user._id, user.email);
+            return ApiResponseHelper.success(res, { devCode: code }, "Verification code sent successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
+        }
+    }
+
+    async sendPhoneOtp(req: Request, res: Response) {
+        try {
+            const user = req.user as any;
+            if (!user) return ApiResponseHelper.error(res, "Unauthorized", 401);
+            if (!user.phoneNumber) return ApiResponseHelper.error(res, "No phone number found", 400);
+
+            const code = await userService.sendPhoneOtp(user._id, user.phoneNumber);
+            return ApiResponseHelper.success(res, { devCode: code }, "Verification code sent successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
+        }
+    }
+
+    async verifyEmailOtp(req: Request, res: Response) {
+        try {
+            const user = req.user as any;
+            if (!user) return ApiResponseHelper.error(res, "Unauthorized", 401);
+            const { code } = req.body;
+            if (!code) return ApiResponseHelper.error(res, "Verification code is required", 400);
+
+            await userService.verifyEmailOtp(user._id, code);
+            return ApiResponseHelper.success(res, null, "Email verified successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
+        }
+    }
+
+    async verifyPhoneOtp(req: Request, res: Response) {
+        try {
+            const user = req.user as any;
+            if (!user) return ApiResponseHelper.error(res, "Unauthorized", 401);
+            const { code } = req.body;
+            if (!code) return ApiResponseHelper.error(res, "Verification code is required", 400);
+
+            await userService.verifyPhoneOtp(user._id, code);
+            return ApiResponseHelper.success(res, null, "Phone number verified successfully");
+        } catch (error: Error | any | unknown) {
+            return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
     }
 }
