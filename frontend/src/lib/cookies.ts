@@ -5,6 +5,8 @@ export async function setTokenCookie(token: string) {
     cookieStore.set({
         name: "auth_token",
         value: token,
+        httpOnly: false,
+        path: "/",
     })
 }
 export async function getTokenCookie() {
@@ -16,6 +18,8 @@ export async function storeUserData(userData: Record<string, unknown>) {
     cookieStore.set({
         name: "user_data",
         value: JSON.stringify(userData), // change object into string
+        httpOnly: false,
+        path: "/",
     })
 }
 export async function getUserData() {
