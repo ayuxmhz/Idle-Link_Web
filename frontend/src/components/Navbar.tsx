@@ -1,33 +1,35 @@
-import Link from "next/link";
-import { getTokenCookie } from "@/lib/cookies";
+"use client";
 
-export default async function Navbar() {
-  const token = await getTokenCookie();
+import Link from "next/link";
+import { useUser } from "@/app/context/UserContext";
+
+export default function Navbar() {
+  const { user, loading } = useUser();
 
   return (
     <nav className="flex items-center justify-between px-6 md:px-14 py-4 border-b border-white/5">
       <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="text-purple-400"
-        >
-          <path
-            d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <img
+          src="/logo.png"
+          alt="IdleLink Logo"
+          width="24"
+          height="24"
+          className="object-contain"
+        />
         <span className="text-white">IdleLink</span>
       </Link>
 
       <div className="flex items-center gap-4">
-        {token ? null : (
+        {loading ? (
+          <div className="w-5 h-5 border-2 border-t-transparent border-purple-500 rounded-full animate-spin"></div>
+        ) : user ? (
+          <Link
+            href={user.role === 'admin' ? '/admin' : '/dashboard'}
+            className="px-5 py-2 bg-white/5 hover:bg-white/10 text-white text-sm rounded-md transition-colors font-medium border border-white/10"
+          >
+            Dashboard
+          </Link>
+        ) : (
           <>
             <Link
               href="/login"
