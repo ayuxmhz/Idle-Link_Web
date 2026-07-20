@@ -1,25 +1,34 @@
 "use client";
 
+import { useState } from "react";
 import { Bell, UserCircle } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/app/context/UserContext";
 import Image from "next/image";
 
-export default function Header() {
+interface HeaderProps {
+  title?: string;
+}
+
+export default function Header({ title = "Home" }: HeaderProps) {
   const { user } = useUser();
+  const [mode, setMode] = useState<"seller" | "buyer">("seller");
 
   return (
     <header className="flex items-center justify-between px-8 py-5 border-b border-[#262736] bg-[#11121a]">
       <div className="flex items-center gap-4">
-        <h2 className="text-2xl font-bold text-white">Home</h2>
+        <h2 className="text-2xl font-bold text-white">{title}</h2>
         <span className="px-3 py-1 text-[10px] uppercase font-bold tracking-widest text-gray-400 border border-[#3b3c4a] rounded-full">
-          Seller
+          {mode === "seller" ? "Seller" : "Buyer"}
         </span>
       </div>
 
       <div className="flex items-center gap-6">
-        <button className="px-4 py-2 text-sm text-gray-300 border border-[#2a2b36] hover:bg-[#1a1b25] rounded-lg transition-colors">
-          Switch to Buyer
+        <button
+          onClick={() => setMode((m) => (m === "seller" ? "buyer" : "seller"))}
+          className="px-4 py-2 text-sm text-gray-300 border border-[#2a2b36] hover:bg-[#1a1b25] rounded-lg transition-colors"
+        >
+          Switch to {mode === "seller" ? "Buyer" : "Seller"}
         </button>
         <button className="text-gray-400 hover:text-white transition-colors relative">
           <Bell size={20} />
