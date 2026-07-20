@@ -1,13 +1,25 @@
-export default function EarningsChart() {
-  const data = [
-    { day: "Mon", height: "30%", active: false },
-    { day: "", height: "45%", active: false },
-    { day: "", height: "40%", active: false },
-    { day: "", height: "80%", active: true },
-    { day: "", height: "55%", active: false },
-    { day: "", height: "90%", active: false },
-    { day: "Sun", height: "70%", active: false },
-  ];
+interface EarningsChartProps {
+  data?: { day: string; total: number }[];
+}
+
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+export default function EarningsChart({ data: earningsData }: EarningsChartProps) {
+  const todayIndex = (() => {
+    const jsDay = new Date().getDay(); // 0 (Sun) - 6 (Sat)
+    return jsDay === 0 ? 6 : jsDay - 1; // convert to Mon-first index
+  })();
+
+  const source = earningsData && earningsData.length === 7
+    ? earningsData
+    : DAY_LABELS.map((day) => ({ day, total: 0 }));
+
+  const maxTotal = Math.max(1, ...source.map((d) => d.total));
+
+  const data = source.map((d, i) => ({
+    height: `${Math.max(6, (d.total / maxTotal) * 100)}%`,
+    active: i === todayIndex,
+  }));
 
   return (
     <div className="bg-[#16171f] border border-[#2a2b36] rounded-xl p-6 h-full flex flex-col">
