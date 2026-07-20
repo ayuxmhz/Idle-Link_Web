@@ -4,16 +4,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginFormData } from "./schema";
 import Link from "next/link";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { handleLoginUser } from "@/lib/actions/auth-action";
 import { Eye, EyeOff } from "lucide-react";
+import Cookies from "js-cookie";
+import { useUser } from "@/app/context/UserContext";
 
 export default function LoginForm() {
   const [error, setError] = useState("");
-  const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
+  const { setUser } = useUser();
 
   const {
     register,
@@ -23,21 +23,35 @@ export default function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit = (data: LoginFormData) => {
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (data: LoginFormData) => {
+    if (loading) return;
     setError("");
-    startTransition(async () => {
-      try {
-        const result = await handleLoginUser(data);
-        if (result.success) {
-          router.push("/dashboard");
-        } else {
-          setError(result.message || "Login failed");
-        }
-      } catch (err) {
-        const errorMsg = (err as { message?: string })?.message || "Login failed";
-        setError(errorMsg);
+    setLoading(true);
+    try {
+      const result = await handleLoginUser(data);
+      if (result.success) {
+        const { token, user } = result.data;
+        // Set cookies on client-side immediately so they're available
+        // on the next page load (the server action also sets them, but
+        // the Set-Cookie header may not be processed by the browser yet).
+        Cookies.set("auth_token", token, { path: "/" });
+        Cookies.set("user_data", JSON.stringify(user), { path: "/" });
+        // Set user directly in context from the login response instead
+        // of calling fetchUser() which makes a second /whoami request
+        // that can intermittently fail and leave the context null.
+        setUser(user);
+        window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
+      } else {
+        setError(result.message || "Login failed");
       }
-    });
+    } catch (err) {
+      const errorMsg = (err as { message?: string })?.message || "Login failed";
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -116,10 +130,10 @@ export default function LoginForm() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isSubmitting || isPending}
+          disabled={isSubmitting || loading}
           className="w-full py-3 bg-[#a78bfa] hover:bg-[#9270ee] active:bg-[#7c5cf6] text-[#0c0d16] font-semibold text-sm rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
         >
-          {isPending ? "Logging in…" : "Log In"}
+          {loading ? "Logging in…" : "Log In"}
         </button>
 
         {/* OR */}

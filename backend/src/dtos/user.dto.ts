@@ -28,6 +28,8 @@ export type LoginUserDTO = z.infer<typeof LoginUserDTO>;
 export const UpdateUserDTO = z.object({
     firstName: z.string().min(1, "First name is required").optional(),
     lastName: z.string().min(1, "Last name is required").optional(),
+    email: z.string().email("Invalid email address").optional(),
+    phoneNumber: z.string().optional()
 });
 export type UpdateUserDTO = z.infer<typeof UpdateUserDTO>;
 

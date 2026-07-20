@@ -7,6 +7,9 @@ export interface IUser extends UserType, Document {
     createdAt: Date;
     updatedAt: Date;
     profilePicture?: string;
+    phoneNumber?: string;
+    isEmailVerified: boolean;
+    isPhoneVerified: boolean;
 }
 const UserMongoSchema: Schema = new Schema<IUser>(
     {
@@ -16,7 +19,11 @@ const UserMongoSchema: Schema = new Schema<IUser>(
         username: { type: String, required: true, unique: true },
         password: { type: String, required: true },
         role: { type: String, enum: ["admin", "user"], default: "user" },
-        profilePicture: { type: String }
+        profilePicture: { type: String },
+        phoneNumber: { type: String },
+        isEmailVerified: { type: Boolean, default: false },
+        isPhoneVerified: { type: Boolean, default: false },
+        walletBalance: { type: Number, default: 0 }
     },
     {
         timestamps: true // createdAt and updatedAt will be automatically added and managed by mongoose

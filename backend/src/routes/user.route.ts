@@ -11,5 +11,9 @@ userRouter.post("/login", userController.loginUser);
 userRouter.get("/whoami", authorizedMiddleware, userController.whoami);
 userRouter.put("/update", authorizedMiddleware, upload.single("profilePicture"), userController.updateProfile);
 userRouter.put("/update-password", authorizedMiddleware, userController.updatePassword);
+userRouter.post("/send-verification-email", authorizedMiddleware, userController.sendEmailOtp);
+userRouter.post("/send-verification-phone", authorizedMiddleware, userController.sendPhoneOtp);
+userRouter.post("/verify-email", authorizedMiddleware, userController.verifyEmailOtp);
+userRouter.post("/verify-phone", authorizedMiddleware, userController.verifyPhoneOtp);
 
 export default userRouter;

@@ -22,13 +22,13 @@ export const handleLoginUser = async (data: LoginFormData) => {
     try{
         // how to handle data from component and how to send to component
         const result = await login(data);
-        // set cookie
-        const user = result.data.user;
-        const token = result.data.token;
-        await setTokenCookie(token);
-        await storeUserData(user);
 
         if(result.success){
+            // only set cookies when login actually succeeded
+            const user = result.data.user;
+            const token = result.data.token;
+            await setTokenCookie(token);
+            await storeUserData(user);
             return { success: true, message: result.message, data: result.data }; 
         }else{
             return { success: false, message: result.message || 'Login failed' };    

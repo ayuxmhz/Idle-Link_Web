@@ -9,6 +9,8 @@ export interface IUserRepository {
     getAll(): Promise<IUser[]>;
     update(id: string, user: Partial<IUser>): Promise<IUser | null>;
     delete(id: string): Promise<boolean>;
+    getAllPaginated(page: number, limit: number, search?: string): Promise<{ data: IUser[], total: number }>;
+    getFirstAdmin(): Promise<IUser | null>;
 }
 export class UserMongoRepository implements IUserRepository {  
     async getUserById(id: string): Promise<IUser | null> {
@@ -38,5 +40,30 @@ export class UserMongoRepository implements IUserRepository {
     async delete(id: string): Promise<boolean> {
         const deleted = await UserModel.findByIdAndDelete(id);
         return !!deleted;
+    }
+    
+    async getAllPaginated(page: number, limit: number, search?: string): Promise<{ data: IUser[], total: number }> {
+        const query: any = {};
+        if (search) {
+            query.$or = [
+                { firstName: { $regex: search, $options: 'i' } },
+                { lastName: { $regex: search, $options: 'i' } },
+                { email: { $regex: search, $options: 'i' } },
+                { username: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        const total = await UserModel.countDocuments(query);
+        const data = await UserModel.find(query)
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .sort({ createdAt: -1 });
+
+        return { data, total };
+    }
+
+    async getFirstAdmin(): Promise<IUser | null> {
+        const found = await UserModel.findOne({ role: "admin" });
+        return found;
     }
 }

@@ -6,6 +6,7 @@ import morgan from "morgan";
 
 // routes
 import userRoutes from "./routes/user.route";
+import adminUserRoutes from "./routes/admin/user.route";
 
 const app: Application = express();
 const corsOptions = {
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: true })); // x-www-form-urlencoded
 app.use(morgan("combined")); // log all requests
 
 app.use("/api/v1/auth", userRoutes); // user related routes
+app.use("/api/v1/admin/users", adminUserRoutes); // admin user routes
 
 // Serve static files from public directory
 import path from "path";

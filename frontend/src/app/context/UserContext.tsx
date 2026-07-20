@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { clearAuthCookies } from "@/lib/cookies";
 
 interface User {
   _id: string;
@@ -12,6 +13,9 @@ interface User {
   username: string;
   profilePicture?: string;
   role: string;
+  phoneNumber?: string;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
 }
 
 interface UserContextType {
@@ -41,24 +45,48 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
       });
       setUser(response.data.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching user", error);
-      Cookies.remove("auth_token");
-      setUser(null);
+      // Only clear auth cookies on 401 (token invalid/expired).
+      // For 500 or network errors, keep the session — a backend hiccup
+      // should not force the user to re-login.
+      const status = error?.response?.status;
+      if (status === 401) {
+        Cookies.remove("auth_token");
+        Cookies.remove("user_data");
+        await clearAuthCookies();
+        setUser(null);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Synchronously try to load user from cookie on mount to avoid layout flashes
+    try {
+      const raw = Cookies.get("user_data");
+      if (raw) {
+        setUser(JSON.parse(raw));
+      }
+    } catch (e) {
+      console.error("Error parsing user_data cookie on mount", e);
+    }
     fetchUser();
   }, []);
 
-  const logout = () => {
+  const logout = async () => {
     Cookies.remove("auth_token");
-    setUser(null);
+    Cookies.remove("user_data");
+    await clearAuthCookies();
+    // Intentionally omitting setUser(null) here.
+    // If we set it to null, React will instantly re-render the page showing
+    // placeholder data ("User", "@") for a split second before the browser 
+    // redirects to /login. Since we are doing a hard redirect anyway, leaving
+    // the user state intact prevents the flicker.
     window.location.href = "/login";
   };
+
 
   return (
     <UserContext.Provider value={{ user, loading, fetchUser, setUser, logout }}>
