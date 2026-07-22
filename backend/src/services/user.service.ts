@@ -1,9 +1,9 @@
 import { UserMongoRepository } from "../repositories/user.repository";
-import { CreateUserDTO, LoginUserDTO } from "../dtos/user.dto";
+import { LoginUserDTO } from "../dtos/user.dto";
 import { IUser } from "../models/user.model";
 import { OtpModel } from "../models/otp.model";
 import { HttpException } from "../exceptions/http-exception";
-import { sendVerificationEmail } from "../utils/mailer.util";
+import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/mailer.util";
 import bycryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../configs/constant";
@@ -48,6 +48,62 @@ export class UserService {
             { expiresIn: "30d" }
         );
         return { user, token }
+    }
+
+    async googleAuth(accessToken: string): Promise<{ user: IUser; token: string }> {
+        const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (!response.ok) {
+            throw new HttpException(401, "Invalid Google access token");
+        }
+        const profile = await response.json() as {
+            email?: string;
+            email_verified?: boolean;
+            given_name?: string;
+            family_name?: string;
+            name?: string;
+            picture?: string;
+        };
+        if (!profile.email) {
+            throw new HttpException(400, "Google account has no email address");
+        }
+
+        let user = await userRepository.getUserByEmail(profile.email);
+        if (!user) {
+            const username = await this.generateUsernameFromEmail(profile.email);
+            const randomPassword = await bycryptjs.hash(
+                `${profile.email}:${Date.now()}:${Math.random()}`,
+                10
+            );
+            user = await userRepository.createUser({
+                firstName: profile.given_name || profile.name || "Google",
+                lastName: profile.family_name || "User",
+                email: profile.email,
+                username,
+                password: randomPassword,
+                profilePicture: profile.picture,
+                isEmailVerified: !!profile.email_verified
+            } as Partial<IUser>);
+        }
+
+        const token = jwt.sign(
+            { id: user._id, email: user.email, role: user.role },
+            SECRET_KEY,
+            { expiresIn: "30d" }
+        );
+        return { user, token };
+    }
+
+    private async generateUsernameFromEmail(email: string): Promise<string> {
+        const base = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "user";
+        let candidate = base;
+        let suffix = 0;
+        while (await userRepository.getUserByUsername(candidate)) {
+            suffix += 1;
+            candidate = `${base}${suffix}`;
+        }
+        return candidate;
     }
 
     async updateProfile(id: string, updateData: Partial<IUser>): Promise<IUser | null> {
@@ -167,7 +223,7 @@ export class UserService {
         // Send real email using our mailer utility
         try {
             await sendVerificationEmail(email, code);
-        } catch (mailError) {
+        } catch (_mailError) {
             console.warn("Failed to send real email (possibly offline). Falling back to console log:");
             console.log(`\n========================================`);
             console.log(`[EMAIL OTP FALLBACK] To: ${email} | Code: ${code}`);
@@ -214,6 +270,51 @@ export class UserService {
         // Cleanup OTP
         await OtpModel.deleteOne({ _id: otpRecord._id });
         return true;
+    }
+
+    async requestPasswordReset(email: string): Promise<void> {
+        const user = await userRepository.getUserByEmail(email);
+        if (!user) {
+            // Don't leak whether an email is registered — succeed silently either way.
+            return;
+        }
+
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 mins
+
+        await OtpModel.deleteMany({ userId: user._id, type: "password_reset" });
+        await OtpModel.create({
+            userId: user._id,
+            type: "password_reset",
+            target: email,
+            code,
+            expiresAt
+        });
+
+        try {
+            await sendPasswordResetEmail(email, code);
+        } catch (_mailError) {
+            console.warn("Failed to send password reset email (possibly offline). Falling back to console log:");
+            console.log(`\n========================================`);
+            console.log(`[PASSWORD RESET OTP FALLBACK] To: ${email} | Code: ${code}`);
+            console.log(`========================================\n`);
+        }
+    }
+
+    async resetPassword(email: string, code: string, newPassword: string): Promise<void> {
+        const user = await userRepository.getUserByEmail(email);
+        if (!user) {
+            throw new HttpException(400, "Invalid or expired verification code");
+        }
+
+        const otpRecord = await OtpModel.findOne({ userId: user._id, type: "password_reset", code });
+        if (!otpRecord) {
+            throw new HttpException(400, "Invalid or expired verification code");
+        }
+
+        const hashedPassword = await bycryptjs.hash(newPassword, 10);
+        await userRepository.update(user._id.toString(), { password: hashedPassword });
+        await OtpModel.deleteOne({ _id: otpRecord._id });
     }
 
     async verifyPhoneOtp(userId: string, code: string): Promise<boolean> {

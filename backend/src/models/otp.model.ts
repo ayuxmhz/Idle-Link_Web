@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IOtp extends Document {
     userId: mongoose.Types.ObjectId;
-    type: "email" | "phone";
+    type: "email" | "phone" | "password_reset";
     target: string; // the email address or phone number being verified
     code: string;
     expiresAt: Date;
@@ -10,7 +10,7 @@ export interface IOtp extends Document {
 
 const OtpSchema = new Schema<IOtp>({
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    type: { type: String, enum: ["email", "phone"], required: true },
+    type: { type: String, enum: ["email", "phone", "password_reset"], required: true },
     target: { type: String, required: true },
     code: { type: String, required: true },
     expiresAt: { type: Date, required: true }
