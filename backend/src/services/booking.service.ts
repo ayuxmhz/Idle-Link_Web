@@ -1,7 +1,9 @@
 import { BookingMongoRepository } from "../repositories/booking.repository";
 import { DeviceMongoRepository } from "../repositories/device.repository";
 import { UserMongoRepository } from "../repositories/user.repository";
+import { RatingMongoRepository } from "../repositories/rating.repository";
 import { TransactionService } from "./transaction.service";
+import { NotificationService } from "./notification.service";
 import { CreateBookingDTO, UpdateBookingStatusDTO } from "../dtos/booking.dto";
 import { IBooking } from "../models/booking.model";
 import { IDevice } from "../models/device.model";
@@ -10,7 +12,9 @@ import { HttpException } from "../exceptions/http-exception";
 const bookingRepository = new BookingMongoRepository();
 const deviceRepository = new DeviceMongoRepository();
 const userRepository = new UserMongoRepository();
+const ratingRepository = new RatingMongoRepository();
 const transactionService = new TransactionService();
+const notificationService = new NotificationService();
 
 interface ConsoleLine {
     text: string;
@@ -78,6 +82,12 @@ export class BookingService {
             description: `Booking: ${dto.taskName}`
         });
 
+        await notificationService.notify(
+            device.owner.toString(),
+            "booking_created",
+            `${buyer.username} booked "${device.name}" for "${dto.taskName}"`
+        );
+
         return booking;
     }
 
@@ -124,11 +134,11 @@ export class BookingService {
             if (booking.buyer.toString() !== requesterId) {
                 throw new HttpException(403, "Only the buyer can cancel this booking");
             }
-            if (booking.status !== "pending" && booking.status !== "running") {
+            if (booking.status !== "running") {
                 throw new HttpException(400, "Booking cannot be cancelled in its current state");
             }
 
-            const updated = await bookingRepository.update(id, { status: "cancelled" });
+            const updated = await bookingRepository.update(id, { status: "cancelled", cancelReason: dto.reason });
             if (!updated) {
                 throw new HttpException(404, "Booking not found");
             }
@@ -146,6 +156,12 @@ export class BookingService {
                 amount: booking.totalCost,
                 description: `Refund: cancelled booking - ${booking.taskName}`
             });
+
+            await notificationService.notify(
+                booking.seller.toString(),
+                "booking_created",
+                `Booking "${booking.taskName}" was cancelled by the buyer: ${dto.reason}`
+            );
 
             return updated;
         }
@@ -171,7 +187,7 @@ export class BookingService {
     }
 
     async deleteBooking(id: string, requesterId: string): Promise<void> {
-        await this.updateBookingStatus(id, requesterId, { status: "cancelled" });
+        await this.updateBookingStatus(id, requesterId, { status: "cancelled", reason: "Cancelled by buyer" });
     }
 
     // --- internal helpers below ---
@@ -217,6 +233,17 @@ export class BookingService {
             description: `Payout: ${booking.taskName}`
         });
 
+        await notificationService.notify(
+            booking.seller.toString(),
+            "payment_received",
+            `You earned NPR ${sellerAmount} from "${booking.taskName}"`
+        );
+        await notificationService.notify(
+            booking.buyer.toString(),
+            "booking_completed",
+            `Your job "${booking.taskName}" has completed`
+        );
+
         const admin = await userRepository.getFirstAdmin();
         if (admin) {
             await userRepository.update(admin._id.toString(), {
@@ -237,6 +264,16 @@ export class BookingService {
         const progress = this.computeProgress(booking);
         const buyer = await userRepository.getUserById(booking.buyer.toString());
         const buyerUsername = buyer?.username;
+
+        if (booking.status === "completed") {
+            const rating = await ratingRepository.getByBooking(booking._id.toString());
+            return {
+                ...obj,
+                progress,
+                buyerUsername,
+                rating: rating ? { stars: rating.stars, review: rating.review } : null
+            };
+        }
 
         if (booking.status !== "running") {
             return { ...obj, progress, buyerUsername };
