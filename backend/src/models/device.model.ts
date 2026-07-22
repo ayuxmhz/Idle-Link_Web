@@ -26,7 +26,7 @@ const DeviceMongoSchema: Schema = new Schema<IDevice>(
         specs: { type: SpecsMongoSchema, required: true },
         hourlyRate: { type: Number, required: true },
         status: { type: String, enum: ["live", "offline"], default: "offline" },
-        uptimePercent: { type: Number, default: 0 }
+        uptimePercent: { type: Number, default: 100 }
     },
     {
         timestamps: true
