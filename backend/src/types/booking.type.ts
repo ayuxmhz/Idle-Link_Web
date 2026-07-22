@@ -5,10 +5,11 @@ export const BookingSchema = z.object({
     seller: z.string(),
     buyer: z.string(),
     taskName: z.string().min(1, "Task name is required"),
-    status: z.enum(["pending", "running", "completed", "cancelled"]).default("pending"),
+    status: z.enum(["running", "completed", "cancelled"]).default("running"),
     pricePerHour: z.number().positive(),
     startedAt: z.date(),
     estimatedCompletionAt: z.date(),
-    totalCost: z.number().positive()
+    totalCost: z.number().positive(),
+    cancelReason: z.string().optional()
 });
 export type BookingType = z.infer<typeof BookingSchema>;

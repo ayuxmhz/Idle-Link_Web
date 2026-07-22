@@ -7,7 +7,13 @@ export const CreateBookingDTO = z.object({
 });
 export type CreateBookingDTO = z.infer<typeof CreateBookingDTO>;
 
-export const UpdateBookingStatusDTO = z.object({
-    status: z.enum(["cancelled", "completed"])
-});
+export const UpdateBookingStatusDTO = z.discriminatedUnion("status", [
+    z.object({
+        status: z.literal("cancelled"),
+        reason: z.string().min(1, "Please provide a reason for cancelling").max(300, "Reason must be 300 characters or fewer")
+    }),
+    z.object({
+        status: z.literal("completed")
+    })
+]);
 export type UpdateBookingStatusDTO = z.infer<typeof UpdateBookingStatusDTO>;
