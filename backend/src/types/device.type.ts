@@ -15,6 +15,6 @@ export const DeviceSchema = z.object({
     specs: SpecsSchema,
     hourlyRate: z.number().positive("Hourly rate must be greater than 0"),
     status: z.enum(["live", "offline"]).default("offline"),
-    uptimePercent: z.number().min(0).max(100).default(0)
+    uptimePercent: z.number().min(0).max(100).default(100)
 });
 export type DeviceType = z.infer<typeof DeviceSchema>;
