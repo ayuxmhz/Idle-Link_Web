@@ -22,10 +22,9 @@ export class TransactionController {
 
     async getSummary(req: Request, res: Response) {
         try {
-            const range = (req.query.range as string) || "week";
             const user = req.user as any;
 
-            const summary = await transactionService.getSummary(user._id.toString(), range);
+            const summary = await transactionService.getSummary(user._id.toString());
             return ApiResponseHelper.success(res, summary, "Summary fetched successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
