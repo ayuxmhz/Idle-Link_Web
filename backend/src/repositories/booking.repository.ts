@@ -14,6 +14,7 @@ export interface IBookingRepository {
     delete(id: string): Promise<boolean>;
     getAllPaginated(page: number, limit: number, filters: BookingListFilters): Promise<{ data: IBooking[], total: number }>;
     hasActiveBookingForDevice(deviceId: string): Promise<boolean>;
+    getActiveDeviceIds(deviceIds: string[]): Promise<Set<string>>;
     findActiveForSeller(sellerId: string): Promise<IBooking[]>;
     completeIfRunning(id: string): Promise<IBooking | null>;
 }
@@ -35,7 +36,7 @@ export class BookingMongoRepository implements IBookingRepository {
         return found;
     }
     async update(id: string, booking: Partial<IBooking>): Promise<IBooking | null> {
-        const updated = await BookingModel.findByIdAndUpdate(id, booking, { new: true });
+        const updated = await BookingModel.findByIdAndUpdate(id, booking, { returnDocument: "after" });
         return updated;
     }
     async delete(id: string): Promise<boolean> {
@@ -59,8 +60,16 @@ export class BookingMongoRepository implements IBookingRepository {
     }
 
     async hasActiveBookingForDevice(deviceId: string): Promise<boolean> {
-        const found = await BookingModel.exists({ device: deviceId, status: { $in: ["pending", "running"] } });
+        const found = await BookingModel.exists({ device: deviceId, status: "running" });
         return !!found;
+    }
+
+    async getActiveDeviceIds(deviceIds: string[]): Promise<Set<string>> {
+        const found = await BookingModel.find(
+            { device: { $in: deviceIds }, status: "running" },
+            "device"
+        );
+        return new Set(found.map((b) => b.device.toString()));
     }
 
     async findActiveForSeller(sellerId: string): Promise<IBooking[]> {
@@ -75,7 +84,7 @@ export class BookingMongoRepository implements IBookingRepository {
         const preUpdateDoc = await BookingModel.findOneAndUpdate(
             { _id: id, status: "running" },
             { status: "completed" },
-            { new: false }
+            { returnDocument: "before" }
         );
         return preUpdateDoc;
     }
