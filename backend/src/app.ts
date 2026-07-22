@@ -15,17 +15,26 @@ import adminTransactionRoutes from "./routes/admin/transaction.route";
 import adminStatsRoutes from "./routes/admin/stats.route";
 import esewaRoutes from "./routes/esewa.route";
 import matcherRoutes from "./routes/matcher.route";
+import notificationRoutes from "./routes/notification.route";
+import ratingRoutes from "./routes/rating.route";
 
 const app: Application = express();
 const corsOptions = {
-    origin: ["*"], // ["http://localhost:3000", "http://example.com"]
+    // NOTE: cors treats an array like ["*"] as an origin whitelist that must
+    // match exactly — "*" as an array element never matches a real Origin
+    // header, so Access-Control-Allow-Origin was silently never sent and the
+    // browser blocked every cross-origin response. A bare "*" string is the
+    // actual wildcard.
+    origin: "*",
     successStatus: 200
 }
 app.use(cors(corsOptions)); // enable CORS for all routes
 
 app.use(express.json()); // json input
 app.use(express.urlencoded({ extended: true })); // x-www-form-urlencoded
-app.use(morgan("combined")); // log all requests
+if (process.env.NODE_ENV !== "test") {
+    app.use(morgan("combined")); // log all requests (silenced during automated tests)
+}
 
 app.use("/api/v1/auth", userRoutes); // user related routes
 app.use("/api/v1/admin/users", adminUserRoutes); // admin user routes
@@ -37,6 +46,8 @@ app.use("/api/v1/admin/transactions", adminTransactionRoutes); // admin transact
 app.use("/api/v1/admin/stats", adminStatsRoutes); // admin dashboard stats routes
 app.use("/api/v1/transactions/esewa", esewaRoutes); // eSewa payment routes
 app.use("/api/v1/matcher", matcherRoutes); // AI job matcher routes
+app.use("/api/v1/notifications", notificationRoutes); // notification routes
+app.use("/api/v1/ratings", ratingRoutes); // device rating / review routes
 
 // Serve static files from public directory
 import path from "path";
@@ -50,7 +61,7 @@ app.use(
 )
 // global error handler (at the last)
 app.use(
-    (err: Error, req: Request, res: Response, next: NextFunction) => {
+    (err: Error, req: Request, res: Response, _next: NextFunction) => {
         console.error("Error:", err);
         if (err instanceof HttpException) {
             return ApiResponseHelper.error(
@@ -64,4 +75,3 @@ app.use(
 )
 
 export default app;
-export { PORT, DUMMY } from "./configs/constant";
