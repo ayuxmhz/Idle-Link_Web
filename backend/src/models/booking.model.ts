@@ -16,11 +16,12 @@ const BookingMongoSchema: Schema = new Schema<IBooking>(
         seller: { type: Schema.Types.ObjectId, ref: "User", required: true },
         buyer: { type: Schema.Types.ObjectId, ref: "User", required: true },
         taskName: { type: String, required: true },
-        status: { type: String, enum: ["pending", "running", "completed", "cancelled"], default: "pending" },
+        status: { type: String, enum: ["running", "completed", "cancelled"], default: "running" },
         pricePerHour: { type: Number, required: true },
         startedAt: { type: Date, required: true },
         estimatedCompletionAt: { type: Date, required: true },
-        totalCost: { type: Number, required: true }
+        totalCost: { type: Number, required: true },
+        cancelReason: { type: String }
     },
     {
         timestamps: true
