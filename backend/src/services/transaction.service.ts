@@ -1,11 +1,13 @@
 import { TransactionMongoRepository } from "../repositories/transaction.repository";
 import { UserMongoRepository } from "../repositories/user.repository";
+import { NotificationService } from "./notification.service";
 import { DepositDTO, WithdrawDTO } from "../dtos/transaction.dto";
 import { ITransaction } from "../models/transaction.model";
 import { HttpException } from "../exceptions/http-exception";
 
 const transactionRepository = new TransactionMongoRepository();
 const userRepository = new UserMongoRepository();
+const notificationService = new NotificationService();
 
 export interface RecordTransactionInput {
     user: string;
@@ -28,12 +30,14 @@ export class TransactionService {
             throw new HttpException(404, "User not found");
         }
         await userRepository.update(userId, { walletBalance: (user.walletBalance ?? 0) + dto.amount });
-        return this.record({
+        const transaction = await this.record({
             user: userId,
             type: "deposit",
             amount: dto.amount,
             description: "Wallet top-up"
         });
+        await notificationService.notify(userId, "wallet_deposit", `NPR ${dto.amount} was added to your wallet`);
+        return transaction;
     }
 
     async withdraw(userId: string, dto: WithdrawDTO): Promise<ITransaction> {
@@ -45,12 +49,14 @@ export class TransactionService {
             throw new HttpException(400, "Insufficient balance");
         }
         await userRepository.update(userId, { walletBalance: (user.walletBalance ?? 0) - dto.amount });
-        return this.record({
+        const transaction = await this.record({
             user: userId,
             type: "withdrawal",
             amount: -dto.amount,
-            description: "Withdrawal to bank account"
+            description: `Withdrawal to ${dto.destination}`
         });
+        await notificationService.notify(userId, "wallet_withdrawal", `NPR ${dto.amount} withdrawal to ${dto.destination} was processed`);
+        return transaction;
     }
 
     async listMine(userId: string, page: number, limit: number) {
@@ -80,7 +86,7 @@ export class TransactionService {
         };
     }
 
-    async getSummary(userId: string, range: string = "week") {
+    async getSummary(userId: string) {
         const { monday, nextMonday } = this.getWeekBounds();
         const totals = await transactionRepository.getJobPaymentTotalsByDay(userId, monday, nextMonday);
         const totalsMap = new Map(totals.map((t) => [t.date, t.total]));
@@ -92,7 +98,7 @@ export class TransactionService {
 
         for (let i = 0; i < 7; i++) {
             const d = new Date(monday);
-            d.setDate(monday.getDate() + i);
+            d.setUTCDate(monday.getUTCDate() + i);
             const dateStr = this.formatDate(d);
             const total = totalsMap.get(dateStr) ?? 0;
             weekTotal += total;
@@ -107,20 +113,26 @@ export class TransactionService {
         };
     }
 
+    // MongoDB's $dateToString (used in the aggregation this feeds) buckets by
+    // UTC calendar day by default. These helpers must use UTC too — mixing
+    // the server process's local timezone in here caused "today"/"this week"
+    // to disagree with each other whenever local time and UTC fall on
+    // different calendar days (e.g. after midnight UTC but still evening
+    // locally, or vice versa).
     private getWeekBounds(): { monday: Date; nextMonday: Date } {
         const now = new Date();
-        const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+        const day = now.getUTCDay(); // 0 (Sun) - 6 (Sat)
         const diffToMonday = day === 0 ? -6 : 1 - day;
-        const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday);
+        const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diffToMonday));
         const nextMonday = new Date(monday);
-        nextMonday.setDate(monday.getDate() + 7);
+        nextMonday.setUTCDate(monday.getUTCDate() + 7);
         return { monday, nextMonday };
     }
 
     private formatDate(d: Date): string {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
+        const yyyy = d.getUTCFullYear();
+        const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+        const dd = String(d.getUTCDate()).padStart(2, "0");
         return `${yyyy}-${mm}-${dd}`;
     }
 }
