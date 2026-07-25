@@ -3,6 +3,7 @@ import { z } from "zod";
 import { BookingService } from "../services/booking.service";
 import { CreateBookingDTO, UpdateBookingStatusDTO } from "../dtos/booking.dto";
 import { ApiResponseHelper } from "../utils/apihelper.util";
+import { buildBookingLinks } from "../utils/hateoas.util";
 
 const bookingService = new BookingService();
 
@@ -15,7 +16,8 @@ export class BookingController {
             }
             const user = req.user as any;
             const booking = await bookingService.createBooking(user._id.toString(), parsed.data);
-            return ApiResponseHelper.success(res, booking, "Booking created successfully", 201);
+            const data = { ...booking.toObject(), _links: buildBookingLinks(booking, user._id.toString()) };
+            return ApiResponseHelper.success(res, data, "Booking created successfully", 201);
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
@@ -30,7 +32,11 @@ export class BookingController {
             const user = req.user as any;
 
             const result = await bookingService.listMine(user._id.toString(), role, status, page, limit);
-            return ApiResponseHelper.success(res, result.data, "Bookings fetched successfully", 200, result.meta);
+            const data = result.data.map((booking: any) => ({
+                ...booking,
+                _links: buildBookingLinks(booking, user._id.toString())
+            }));
+            return ApiResponseHelper.success(res, data, "Bookings fetched successfully", 200, result.meta);
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
@@ -40,7 +46,8 @@ export class BookingController {
         try {
             const user = req.user as any;
             const booking = await bookingService.getBookingById(req.params.id as string, user._id.toString(), user.role);
-            return ApiResponseHelper.success(res, booking, "Booking fetched successfully");
+            const data = { ...booking, _links: buildBookingLinks(booking as any, user._id.toString()) };
+            return ApiResponseHelper.success(res, data, "Booking fetched successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
@@ -54,7 +61,8 @@ export class BookingController {
             }
             const user = req.user as any;
             const booking = await bookingService.updateBookingStatus(req.params.id as string, user._id.toString(), parsed.data);
-            return ApiResponseHelper.success(res, booking, "Booking updated successfully");
+            const data = { ...booking.toObject(), _links: buildBookingLinks(booking, user._id.toString()) };
+            return ApiResponseHelper.success(res, data, "Booking updated successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }

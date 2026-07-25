@@ -3,6 +3,7 @@ import { z } from "zod";
 import { DeviceService } from "../services/device.service";
 import { CreateDeviceDTO, UpdateDeviceDTO } from "../dtos/device.dto";
 import { ApiResponseHelper } from "../utils/apihelper.util";
+import { buildDeviceLinks } from "../utils/hateoas.util";
 
 const deviceService = new DeviceService();
 
@@ -15,7 +16,8 @@ export class DeviceController {
             }
             const user = req.user as any;
             const device = await deviceService.createDevice(user._id.toString(), parsed.data);
-            return ApiResponseHelper.success(res, device, "Device created successfully", 201);
+            const data = { ...device.toObject(), _links: buildDeviceLinks(device, user._id.toString()) };
+            return ApiResponseHelper.success(res, data, "Device created successfully", 201);
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
@@ -37,7 +39,11 @@ export class DeviceController {
                 sort: req.query.sort as string | undefined,
                 search: req.query.search as string | undefined
             });
-            return ApiResponseHelper.success(res, result.data, "Devices fetched successfully", 200, result.meta);
+            const data = result.data.map((device: any) => ({
+                ...device,
+                _links: buildDeviceLinks(device, user._id.toString())
+            }));
+            return ApiResponseHelper.success(res, data, "Devices fetched successfully", 200, result.meta);
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
@@ -45,8 +51,10 @@ export class DeviceController {
 
     async getDevice(req: Request, res: Response) {
         try {
+            const user = req.user as any;
             const device = await deviceService.getDeviceById(req.params.id as string);
-            return ApiResponseHelper.success(res, device, "Device fetched successfully");
+            const data = { ...device.toObject(), _links: buildDeviceLinks(device, user?._id?.toString()) };
+            return ApiResponseHelper.success(res, data, "Device fetched successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
@@ -60,7 +68,8 @@ export class DeviceController {
             }
             const user = req.user as any;
             const device = await deviceService.updateDevice(req.params.id as string, user._id.toString(), parsed.data);
-            return ApiResponseHelper.success(res, device, "Device updated successfully");
+            const data = { ...device.toObject(), _links: buildDeviceLinks(device, user._id.toString()) };
+            return ApiResponseHelper.success(res, data, "Device updated successfully");
         } catch (error: Error | any | unknown) {
             return ApiResponseHelper.error(res, error.message || "Internal Server Error", error.status || 500);
         }
