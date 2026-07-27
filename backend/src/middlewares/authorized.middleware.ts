@@ -7,14 +7,16 @@ import { UserMongoRepository } from '../repositories/user.repository';
 import { HttpException } from '../exceptions/http-exception';
 import { ApiResponseHelper } from '../utils/apihelper.util';
 
+// `namespace` here is the only way TypeScript supports augmenting Express's global Request type.
 declare global {
+   // eslint-disable-next-line @typescript-eslint/no-namespace
    namespace Express {
         interface Request {
             user?: Record<string, any> | IUser
         }
     }
 } // adding tag (user) to request, can use req.user
-let userRepository = new UserMongoRepository();
+const userRepository = new UserMongoRepository();
 export const authorizedMiddleware =
     async (req: Request, res: Response, next: NextFunction) => {
         try {
