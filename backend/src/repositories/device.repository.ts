@@ -31,7 +31,7 @@ export class DeviceMongoRepository implements IDeviceRepository {
         return found;
     }
     async update(id: string, device: Partial<IDevice>): Promise<IDevice | null> {
-        const updated = await DeviceModel.findByIdAndUpdate(id, device, { new: true });
+        const updated = await DeviceModel.findByIdAndUpdate(id, device, { returnDocument: "after" });
         return updated;
     }
     async delete(id: string): Promise<boolean> {
