@@ -34,7 +34,7 @@ export class TransactionMongoRepository implements ITransactionRepository {
         return found;
     }
     async update(id: string, transaction: Partial<ITransaction>): Promise<ITransaction | null> {
-        const updated = await TransactionModel.findByIdAndUpdate(id, transaction, { new: true });
+        const updated = await TransactionModel.findByIdAndUpdate(id, transaction, { returnDocument: "after" });
         return updated;
     }
     async delete(id: string): Promise<boolean> {
