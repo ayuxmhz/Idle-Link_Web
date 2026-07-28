@@ -5,21 +5,38 @@ import { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { ArrowLeft, KeyRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, KeyRound, Eye, EyeOff } from "lucide-react";
+import { passwordSchema, PASSWORD_HINT } from "@/lib/passwordSchema";
 
 export default function PasswordUpdatePage() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
-  const { register, handleSubmit, reset } = useForm();
+  interface PasswordFormData {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }
 
-  const onSubmit = async (data: any) => {
+  const { register, handleSubmit, reset } = useForm<PasswordFormData>();
+
+  const onSubmit = async (data: PasswordFormData) => {
+    const parsed = passwordSchema.safeParse(data.newPassword);
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message);
+      return;
+    }
     if (data.newPassword !== data.confirmPassword) {
       setError("New passwords do not match.");
       return;
     }
-    
+
     setIsSubmitting(true);
     setMessage("");
     setError("");
@@ -39,10 +56,11 @@ export default function PasswordUpdatePage() {
         }
       );
       
-      setMessage("Password updated successfully!");
+      setMessage("Password updated successfully! Redirecting…");
       reset(); // clear form
-    } catch (err: any) {
-      setError(err.response?.data?.message || "An error occurred");
+      setTimeout(() => router.push("/profile"), 1500);
+    } catch (err) {
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -84,36 +102,64 @@ export default function PasswordUpdatePage() {
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
               Current Password
             </label>
-            <input
-              type="password"
-              {...register("currentPassword", { required: true })}
-              className="w-full p-3 bg-[#0c0d16] border border-[#2a2b36] rounded-lg focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] text-white transition-all"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showCurrent ? "text" : "password"}
+                {...register("currentPassword", { required: true })}
+                className="w-full p-3 pr-11 bg-[#0c0d16] border border-[#2a2b36] rounded-lg focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] text-white transition-all"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent(!showCurrent)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
               New Password
             </label>
-            <input
-              type="password"
-              {...register("newPassword", { required: true, minLength: 6 })}
-              className="w-full p-3 bg-[#0c0d16] border border-[#2a2b36] rounded-lg focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] text-white transition-all"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showNew ? "text" : "password"}
+                {...register("newPassword", { required: true })}
+                className="w-full p-3 pr-11 bg-[#0c0d16] border border-[#2a2b36] rounded-lg focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] text-white transition-all"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            <p className="text-gray-500 text-xs mt-1.5">{PASSWORD_HINT}</p>
           </div>
-          
+
           <div>
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
               Confirm New Password
             </label>
-            <input
-              type="password"
-              {...register("confirmPassword", { required: true })}
-              className="w-full p-3 bg-[#0c0d16] border border-[#2a2b36] rounded-lg focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] text-white transition-all"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                type={showConfirm ? "text" : "password"}
+                {...register("confirmPassword", { required: true })}
+                className="w-full p-3 pr-11 bg-[#0c0d16] border border-[#2a2b36] rounded-lg focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] text-white transition-all"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
+              >
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <button

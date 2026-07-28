@@ -5,11 +5,12 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import Link from "next/link";
-import { ArrowLeft, Camera, ChevronRight, KeyRound, User2, Mail, Shield, LogOut } from "lucide-react";
+import { ArrowLeft, Camera, ChevronRight, KeyRound, User2, Mail, Shield, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+import { resolveImageUrl } from "@/lib/api/axios-instance";
 
 export default function ProfilePage() {
-  const { user, fetchUser, loading, logout } = useUser();
+  const { user, fetchUser, loading } = useUser();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoMessage, setPhotoMessage] = useState("");
   const [photoError, setPhotoError] = useState("");
@@ -18,10 +19,55 @@ export default function ProfilePage() {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    if (user?.profilePicture) {
-      setPreviewImage(`http://localhost:8089${user.profilePicture}`);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+
+  const handleSendVerificationCode = async () => {
+    setSendingCode(true);
+    setVerifyError("");
+    try {
+      const token = Cookies.get("auth_token");
+      await axios.post("/api/v1/auth/send-verification-email", {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCodeSent(true);
+    } catch (err) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      setVerifyError(axiosError.response?.data?.message || "Failed to send verification code");
+    } finally {
+      setSendingCode(false);
     }
+  };
+
+  const handleVerifyEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerifying(true);
+    setVerifyError("");
+    try {
+      const token = Cookies.get("auth_token");
+      await axios.post("/api/v1/auth/verify-email", { code: verifyCode }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCodeSent(false);
+      setVerifyCode("");
+      await fetchUser();
+    } catch (err) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      setVerifyError(axiosError.response?.data?.message || "Invalid or expired code");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (user?.profilePicture) {
+        setPreviewImage(resolveImageUrl(user.profilePicture));
+      }
+    })();
   }, [user]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +80,7 @@ export default function ProfilePage() {
 
   const cancelPhotoUpload = () => {
     setSelectedFile(null);
-    setPreviewImage(user?.profilePicture ? `http://localhost:8089${user.profilePicture}` : null);
+    setPreviewImage(resolveImageUrl(user?.profilePicture));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -62,8 +108,8 @@ export default function ProfilePage() {
       setPhotoMessage("Profile photo updated!");
       setSelectedFile(null);
       await fetchUser();
-    } catch (err: any) {
-      setPhotoError(err.response?.data?.message || "Failed to update photo");
+    } catch (err) {
+      setPhotoError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update photo");
       cancelPhotoUpload();
     } finally {
       setUploadingPhoto(false);
@@ -101,8 +147,22 @@ export default function ProfilePage() {
 
         {/* Profile Card */}
         <div className="bg-[#16171f] border border-[#2a2b36] rounded-xl overflow-hidden">
-          {/* Cover Banner */}
-          <div className="h-24 bg-gradient-to-r from-[#2c2057] via-[#3d2a7a] to-[#1a1b2e]" />
+          {/* Cover Banner — a custom image takes priority over a solid
+              color; both fall back to the default gradient. */}
+          <div
+            className={`h-24 ${
+              !user?.coverImage && !user?.coverColor
+                ? "bg-gradient-to-r from-[#2c2057] via-[#3d2a7a] to-[#1a1b2e]"
+                : ""
+            }`}
+            style={
+              user?.coverImage
+                ? { backgroundImage: `url(${resolveImageUrl(user.coverImage)})`, backgroundSize: "cover", backgroundPosition: "center" }
+                : user?.coverColor
+                ? { backgroundColor: user.coverColor }
+                : undefined
+            }
+          />
 
           {/* Avatar + Info */}
           <div className="px-6 pb-6">
@@ -150,11 +210,13 @@ export default function ProfilePage() {
                 </button>
               </div>
 
-              <div className="text-right">
-                <span className="text-xs px-2.5 py-1 bg-[#cbbefa]/10 text-[#cbbefa] border border-[#cbbefa]/20 rounded-full font-medium capitalize">
-                  {user?.role || "user"}
-                </span>
-              </div>
+              {user?.role === "admin" && (
+                <div className="text-right">
+                  <span className="text-xs px-2.5 py-1 bg-[#cbbefa]/10 text-[#cbbefa] border border-[#cbbefa]/20 rounded-full font-medium capitalize">
+                    Admin
+                  </span>
+                </div>
+              )}
             </div>
 
             {selectedFile && (
@@ -216,7 +278,44 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-500">Email Address</p>
                 <p className="text-sm text-white font-medium truncate">{user?.email}</p>
               </div>
+              {user?.isEmailVerified ? (
+                <span className="flex items-center gap-1 text-xs text-emerald-400">
+                  <CheckCircle2 size={14} /> Verified
+                </span>
+              ) : !codeSent ? (
+                <button
+                  onClick={handleSendVerificationCode}
+                  disabled={sendingCode}
+                  className="px-3 py-1.5 text-xs font-medium text-[#cbbefa] border border-[#cbbefa]/30 hover:bg-[#cbbefa]/10 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {sendingCode ? "Sending..." : "Verify Email"}
+                </button>
+              ) : null}
             </div>
+
+            {!user?.isEmailVerified && codeSent && (
+              <form onSubmit={handleVerifyEmail} className="px-5 py-4 bg-[#111218] flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <input
+                  type="text"
+                  required
+                  maxLength={6}
+                  placeholder="Enter 6-digit code"
+                  value={verifyCode}
+                  onChange={(e) => setVerifyCode(e.target.value)}
+                  className="flex-1 px-4 py-2 bg-[#16171f] border border-[#2a2b36] rounded-lg text-white text-sm tracking-[0.2em] focus:outline-none focus:border-[#cbbefa] focus:ring-1 focus:ring-[#cbbefa] transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={verifying}
+                  className="px-4 py-2 bg-[#cbbefa] hover:bg-[#b8abeb] text-[#2c2057] text-xs font-bold rounded-lg transition-colors disabled:opacity-60"
+                >
+                  {verifying ? "Verifying..." : "Confirm"}
+                </button>
+              </form>
+            )}
+            {verifyError && (
+              <p className="px-5 py-2 text-xs text-red-400 bg-red-500/5">{verifyError}</p>
+            )}
             <div className="px-5 py-4 flex items-center gap-4">
               <div className="w-9 h-9 rounded-lg bg-[#2a2b36] flex items-center justify-center text-gray-400">
                 <Shield size={16} />
@@ -263,15 +362,6 @@ export default function ProfilePage() {
             </Link>
           </div>
         </div>
-
-        {/* Logout */}
-        <button
-          onClick={logout}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium"
-        >
-          <LogOut size={16} />
-          Sign Out
-        </button>
 
       </div>
     </div>

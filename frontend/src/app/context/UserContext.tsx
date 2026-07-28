@@ -12,10 +12,13 @@ interface User {
   email: string;
   username: string;
   profilePicture?: string;
+  coverColor?: string;
+  coverImage?: string;
   role: string;
   phoneNumber?: string;
   isEmailVerified?: boolean;
   isPhoneVerified?: boolean;
+  walletBalance?: number;
 }
 
 interface UserContextType {
@@ -45,12 +48,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
         }
       });
       setUser(response.data.data);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching user", error);
       // Only clear auth cookies on 401 (token invalid/expired).
       // For 500 or network errors, keep the session — a backend hiccup
       // should not force the user to re-login.
-      const status = error?.response?.status;
+      const status = (error as { response?: { status?: number } })?.response?.status;
       if (status === 401) {
         Cookies.remove("auth_token");
         Cookies.remove("user_data");
@@ -63,16 +66,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Synchronously try to load user from cookie on mount to avoid layout flashes
-    try {
-      const raw = Cookies.get("user_data");
-      if (raw) {
-        setUser(JSON.parse(raw));
+    (async () => {
+      // Synchronously try to load user from cookie on mount to avoid layout flashes
+      try {
+        const raw = Cookies.get("user_data");
+        if (raw) {
+          setUser(JSON.parse(raw));
+        }
+      } catch (e) {
+        console.error("Error parsing user_data cookie on mount", e);
       }
-    } catch (e) {
-      console.error("Error parsing user_data cookie on mount", e);
-    }
-    fetchUser();
+      await fetchUser();
+    })();
   }, []);
 
   const logout = async () => {
