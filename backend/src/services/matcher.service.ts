@@ -3,6 +3,9 @@ import { DeviceModel, IDevice } from "../models/device.model";
 import { GEMINI_API_KEY } from "../configs/constant";
 import { HttpException } from "../exceptions/http-exception";
 import { MatchQueryDTO } from "../dtos/matcher.dto";
+import { DeviceService } from "./device.service";
+
+const deviceService = new DeviceService();
 
 // The full "flash" tier (gemini-2.5-flash, gemini-flash-latest,
 // gemini-2.0-flash) has no free-tier quota on many API keys/projects
@@ -86,6 +89,11 @@ export class MatcherService {
                         model,
                         contents: prompt,
                         config: {
+                            // Deterministic ranking: without this, the same
+                            // query could return a different order/selection
+                            // on every call, which is confusing for users
+                            // re-running an identical search.
+                            temperature: 0,
                             responseMimeType: "application/json",
                             responseSchema: RESPONSE_SCHEMA
                         }
@@ -109,16 +117,16 @@ export class MatcherService {
         }
 
         const deviceMap = new Map(devices.map((d) => [d._id.toString(), d]));
+        const rankedMatches = matches.filter((m) => deviceMap.has(m.deviceId));
 
-        return matches
-            .filter((m) => deviceMap.has(m.deviceId))
-            .map((m) => {
-                const device = deviceMap.get(m.deviceId)!;
-                return {
-                    ...device.toObject(),
-                    matchPercent: Math.max(0, Math.min(100, Math.round(m.matchPercent))),
-                    explanation: m.explanation
-                };
-            });
+        const rankedDevices = rankedMatches.map((m) => deviceMap.get(m.deviceId)!);
+        const withOwners = await deviceService.attachOwnerUsernames(rankedDevices);
+        const ownerMap = new Map(withOwners.map((d) => [d._id.toString(), d]));
+
+        return rankedMatches.map((m) => ({
+            ...ownerMap.get(m.deviceId)!,
+            matchPercent: Math.max(0, Math.min(100, Math.round(m.matchPercent))),
+            explanation: m.explanation
+        }));
     }
 }

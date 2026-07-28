@@ -42,7 +42,8 @@ export class DeviceService {
     // Batched owner lookup so list views can display "listed by @username"
     // without populate()-ing the `owner` field itself (which would break
     // client-side `device.owner === currentUserId` ownership checks).
-    private async attachOwnerUsernames(devices: IDevice[]): Promise<Record<string, any>[]> {
+    // Public so MatcherService can reuse it for AI-matched results too.
+    async attachOwnerUsernames(devices: IDevice[]): Promise<Record<string, any>[]> {
         const ownerIds = [...new Set(devices.map((d) => d.owner.toString()))];
         const owners = await UserModel.find({ _id: { $in: ownerIds } }, "username firstName lastName profilePicture");
         const ownerMap = new Map(owners.map((o) => [o._id.toString(), o]));
