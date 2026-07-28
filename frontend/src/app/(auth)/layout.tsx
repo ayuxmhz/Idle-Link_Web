@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import NetworkBackground from "@/components/NetworkBackground";
 
 const bullets = [
   "Earn passive income",
@@ -42,36 +43,8 @@ export default function AuthLayout({
           </p>
 
           {/* Network visualization image area */}
-          <div className="rounded-xl overflow-hidden h-44 bg-[#0c0d18] border border-white/[0.06] relative mb-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-transparent to-purple-950/10" />
-            {/* Simulated network nodes */}
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 380 176"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Connection lines */}
-              <line x1="60" y1="40" x2="150" y2="88" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.3"/>
-              <line x1="150" y1="88" x2="230" y2="50" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.3"/>
-              <line x1="230" y1="50" x2="310" y2="110" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.3"/>
-              <line x1="150" y1="88" x2="200" y2="140" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.3"/>
-              <line x1="60" y1="40" x2="100" y2="130" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.2"/>
-              <line x1="100" y1="130" x2="200" y2="140" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.25"/>
-              <line x1="200" y1="140" x2="310" y2="110" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.25"/>
-              <line x1="230" y1="50" x2="320" y2="40" stroke="#7c3aed" strokeWidth="0.5" strokeOpacity="0.2"/>
-              {/* Glow nodes */}
-              <circle cx="60" cy="40" r="3" fill="#a78bfa" fillOpacity="0.8"/>
-              <circle cx="150" cy="88" r="4" fill="#a78bfa" fillOpacity="0.9"/>
-              <circle cx="230" cy="50" r="3" fill="#a78bfa" fillOpacity="0.7"/>
-              <circle cx="310" cy="110" r="3" fill="#a78bfa" fillOpacity="0.8"/>
-              <circle cx="200" cy="140" r="2.5" fill="#c4b5fd" fillOpacity="0.6"/>
-              <circle cx="100" cy="130" r="2" fill="#c4b5fd" fillOpacity="0.5"/>
-              <circle cx="320" cy="40" r="2" fill="#c4b5fd" fillOpacity="0.5"/>
-              {/* Halos */}
-              <circle cx="150" cy="88" r="8" fill="#7c3aed" fillOpacity="0.12"/>
-              <circle cx="60" cy="40" r="6" fill="#7c3aed" fillOpacity="0.08"/>
-              <circle cx="310" cy="110" r="6" fill="#7c3aed" fillOpacity="0.08"/>
-            </svg>
+          <div className="glow-border rounded-xl overflow-hidden h-44 border border-white/[0.06] relative mb-4">
+            <NetworkBackground />
           </div>
         </div>
 

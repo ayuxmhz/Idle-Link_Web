@@ -195,7 +195,7 @@ export default function GetStartedSection() {
         </div>
 
         {/* Right: mock preview matching the active panel */}
-        <div className="rounded-2xl bg-gradient-to-br from-[#3d2a7a] via-[#2c2057] to-[#1a1b2e] border border-white/10 p-8 min-h-[360px] flex items-center overflow-hidden">
+        <div className="glow-border rounded-2xl bg-[#0a0a0c] border border-white/10 p-8 min-h-[360px] flex items-center overflow-hidden">
           <div key={active} className="w-full animate-fade-in-scale">
             {panel.visual}
           </div>

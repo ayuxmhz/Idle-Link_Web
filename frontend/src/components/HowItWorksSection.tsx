@@ -181,7 +181,7 @@ export default function HowItWorksSection() {
     <section className="bg-[#0c0d16] border-t border-white/5 px-6 md:px-14 py-24">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left: terminal-style mockup, swaps per active step */}
-        <div className="rounded-2xl border border-white/10 bg-[#0a0a0c] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden">
+        <div className="glow-border rounded-2xl border border-white/10 bg-[#0a0a0c] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden">
           <div className="flex items-center gap-1.5 px-5 py-4 border-b border-white/5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
             <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
