@@ -25,3 +25,36 @@ export const login = async (data: LoginFormData) => {
         throw new Error(axiosError.response?.data?.message || 'Login failed');
     }
 }
+
+export const googleAuth = async (accessToken: string) => {
+    try {
+        const response =
+            await axiosInstance.post(API.AUTH.GOOGLE, { accessToken });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        throw new Error(axiosError.response?.data?.message || 'Google sign-in failed');
+    }
+}
+
+export const forgotPassword = async (email: string) => {
+    try {
+        const response =
+            await axiosInstance.post(API.AUTH.FORGOT_PASSWORD, { email });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        throw new Error(axiosError.response?.data?.message || 'Failed to send reset code');
+    }
+}
+
+export const resetPassword = async (email: string, code: string, newPassword: string) => {
+    try {
+        const response =
+            await axiosInstance.post(API.AUTH.RESET_PASSWORD, { email, code, newPassword });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<{ message?: string }>;
+        throw new Error(axiosError.response?.data?.message || 'Failed to reset password');
+    }
+}

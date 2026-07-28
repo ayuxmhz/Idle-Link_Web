@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const bullets = [
   "Earn passive income",
@@ -17,11 +18,11 @@ export default function AuthLayout({
       <div className="hidden md:flex md:w-[45%] bg-[#10111d] border-r border-white/[0.06] flex-col p-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg text-white">
-          <img
+          <Image
             src="/logo.png"
             alt="IdleLink Logo"
-            width="22"
-            height="22"
+            width={22}
+            height={22}
             className="object-contain"
           />
           IdleLink
