@@ -63,7 +63,7 @@ const features = [
     iconBg: "bg-orange-900/30 border-orange-700/30 text-orange-400",
     title: "For Buyers",
     description:
-      "Deploy Docker containers or raw binaries across a globally distributed network. Access massive parallel compute at a fraction of traditional cloud costs.",
+      "Browse live GPUs and CPUs from the community, or describe your task and let the AI Matcher find the best fit. Book by the hour at a fraction of traditional cloud costs.",
   },
   {
     icon: (
@@ -73,9 +73,9 @@ const features = [
       </svg>
     ),
     iconBg: "bg-blue-900/30 border-blue-700/30 text-blue-400",
-    title: "Enterprise Security",
+    title: "Secure by Design",
     description:
-      "End-to-end encryption, container isolation, and rigorous node vetting ensure your workloads and data remain isolated and tamper-proof.",
+      "JWT-authenticated accounts, encrypted payment flows via eSewa, and role-based access keep your bookings, wallet, and data protected.",
   },
 ];
 

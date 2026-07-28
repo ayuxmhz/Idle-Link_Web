@@ -12,7 +12,7 @@ describe("LandingPage", () => {
         );
         expect(screen.getByText("For Sellers")).toBeInTheDocument();
         expect(screen.getByText("For Buyers")).toBeInTheDocument();
-        expect(screen.getByText("Enterprise Security")).toBeInTheDocument();
+        expect(screen.getByText("Secure by Design")).toBeInTheDocument();
         expect(screen.getByText(/Nodes Active/)).toBeInTheDocument();
     });
 });
