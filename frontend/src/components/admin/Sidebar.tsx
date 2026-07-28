@@ -38,7 +38,7 @@ export default function AdminSidebar() {
       {/* Logo */}
       <div className="p-6 pb-2 flex items-start justify-between">
         <div>
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/admin" className="flex items-center gap-2">
             <Image
               src="/logo.png"
               alt="IdleLink Logo"

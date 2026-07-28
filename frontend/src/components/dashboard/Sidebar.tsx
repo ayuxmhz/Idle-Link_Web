@@ -36,7 +36,7 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 flex items-start justify-between">
         <div>
-          <Link href="/" className="flex items-center gap-2 mb-1">
+          <Link href="/dashboard" className="flex items-center gap-2 mb-1">
             <Image
               src="/logo.png"
               alt="IdleLink Logo"
