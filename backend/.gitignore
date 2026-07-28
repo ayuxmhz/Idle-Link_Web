@@ -14,3 +14,6 @@
 
 # Test coverage
 /coverage
+
+# Uploaded files (local test artifacts; recreated automatically at startup)
+/public/uploads/*
