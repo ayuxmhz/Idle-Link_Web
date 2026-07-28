@@ -1,8 +1,7 @@
 "use client";
 
 import { useUser } from "../context/UserContext";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { notFound } from "next/navigation";
 import AdminSidebar from "@/components/admin/Sidebar";
 import Cookies from "js-cookie";
 import { Menu } from "lucide-react";
@@ -14,13 +13,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const { user, loading } = useUser();
-  const router = useRouter();
-  const [checkedCookie, setCheckedCookie] = useState(false);
 
   // Determine admin status from context OR the cookie fallback.
   // On a hard redirect (window.location.href = "/admin"), the UserProvider
   // re-initializes and fetchUser()/whoami may be slow or fail. Reading
-  // the cookie bridges this gap so the admin page doesn't flash-redirect.
+  // the cookie bridges this gap so the admin page doesn't flash-404.
   const isAdmin = (() => {
     if (user) return user.role === "admin";
     try {
@@ -33,19 +30,7 @@ export default function AdminLayout({
     return false;
   })();
 
-  useEffect(() => {
-    (async () => {
-      // Wait until context has finished loading before deciding to redirect.
-      if (!loading) {
-        setCheckedCookie(true);
-        if (!isAdmin) {
-          router.push("/"); // redirect non-admins
-        }
-      }
-    })();
-  }, [user, loading, router, isAdmin]);
-
-  if (loading || (!checkedCookie && !isAdmin)) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#111218]">
         <div className="w-8 h-8 border-4 border-t-transparent border-[#a39dfa] rounded-full animate-spin"></div>
@@ -53,12 +38,12 @@ export default function AdminLayout({
     );
   }
 
+  // Anonymous visitors and logged-in non-admins both get a 404 — not a
+  // redirect to login — so the existence of the admin section isn't
+  // revealed to anyone who isn't actually an admin.
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#111218]">
-        <div className="w-8 h-8 border-4 border-t-transparent border-[#a39dfa] rounded-full animate-spin"></div>
-      </div>
-    );
+    notFound();
+    return null;
   }
 
   return (

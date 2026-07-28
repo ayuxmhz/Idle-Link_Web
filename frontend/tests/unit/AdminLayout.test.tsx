@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 
-const pushMock = vi.fn();
+const notFoundMock = vi.fn();
 vi.mock("next/navigation", () => ({
-    useRouter: () => ({ push: pushMock }),
+    notFound: () => notFoundMock(),
     usePathname: () => "/admin",
 }));
 
@@ -28,11 +28,20 @@ describe("AdminLayout", () => {
         expect(screen.queryByText("Content")).not.toBeInTheDocument();
     });
 
-    it("redirects a non-admin user away", async () => {
+    it("shows a 404 for a non-admin user instead of the admin content", () => {
         mockLoading = false;
         mockUser = { role: "user" };
         render(<AdminLayout><p>Content</p></AdminLayout>);
-        await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/"));
+        expect(notFoundMock).toHaveBeenCalled();
+        expect(screen.queryByText("Content")).not.toBeInTheDocument();
+    });
+
+    it("shows a 404 for an anonymous visitor", () => {
+        mockLoading = false;
+        mockUser = null;
+        render(<AdminLayout><p>Content</p></AdminLayout>);
+        expect(notFoundMock).toHaveBeenCalled();
+        expect(screen.queryByText("Content")).not.toBeInTheDocument();
     });
 
     it("renders the admin shell for an admin user", async () => {
@@ -40,6 +49,6 @@ describe("AdminLayout", () => {
         mockUser = { role: "admin" };
         render(<AdminLayout><p>Content</p></AdminLayout>);
         expect(await screen.findByText("Content")).toBeInTheDocument();
-        expect(pushMock).not.toHaveBeenCalled();
+        expect(notFoundMock).not.toHaveBeenCalled();
     });
 });
