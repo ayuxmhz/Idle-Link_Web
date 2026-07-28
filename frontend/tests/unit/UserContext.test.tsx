@@ -11,8 +11,9 @@ vi.mock("axios", async (importOriginal) => {
     };
 });
 
+const cookieGetMock = vi.fn<(key?: string) => string | undefined>();
 vi.mock("js-cookie", () => ({
-    default: { get: vi.fn(), remove: vi.fn() },
+    default: { get: (key?: string) => cookieGetMock(key), remove: vi.fn() },
 }));
 
 const clearAuthCookiesMock = vi.fn();
@@ -37,7 +38,7 @@ const originalLocation = window.location;
 
 beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(Cookies.get).mockReturnValue(undefined);
+    cookieGetMock.mockReturnValue(undefined);
     Object.defineProperty(window, "location", {
         configurable: true,
         value: { ...originalLocation, href: "" },
@@ -56,7 +57,7 @@ describe("UserProvider", () => {
     });
 
     it("confirms the session via whoami using the stored token", async () => {
-        vi.mocked(Cookies.get).mockImplementation((key: string) => {
+        cookieGetMock.mockImplementation((key?: string) => {
             if (key === "auth_token") return "token123";
             if (key === "user_data") return JSON.stringify({ firstName: "Cached" });
             return undefined;
@@ -77,7 +78,7 @@ describe("UserProvider", () => {
     });
 
     it("clears the session on a 401 from whoami", async () => {
-        vi.mocked(Cookies.get).mockImplementation((key: string) => (key === "auth_token" ? "expired" : undefined));
+        cookieGetMock.mockImplementation((key?: string) => (key === "auth_token" ? "expired" : undefined));
         vi.mocked(axios.get).mockRejectedValue({ response: { status: 401 } });
 
         render(
@@ -92,7 +93,7 @@ describe("UserProvider", () => {
     });
 
     it("keeps the session on a non-401 error (e.g. server hiccup)", async () => {
-        vi.mocked(Cookies.get).mockImplementation((key: string) => {
+        cookieGetMock.mockImplementation((key?: string) => {
             if (key === "auth_token") return "token123";
             if (key === "user_data") return JSON.stringify({ firstName: "Cached" });
             return undefined;

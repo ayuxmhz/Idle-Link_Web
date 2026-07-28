@@ -39,6 +39,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     try {
       const token = Cookies.get("auth_token");
       if (!token) {
+        // No token means there's nothing to be "logged in" with — clear any
+        // stale cached user (e.g. a leftover user_data cookie from a session
+        // whose token already expired/was removed) so the UI never shows an
+        // authenticated state without a token to back it up.
+        Cookies.remove("user_data");
+        setUser(null);
         setLoading(false);
         return;
       }
@@ -67,10 +73,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      // Synchronously try to load user from cookie on mount to avoid layout flashes
+      // Synchronously try to load user from cookie on mount to avoid layout
+      // flashes — but only if there's actually a token to back it up, so we
+      // never render an authenticated UI for a session that isn't real.
       try {
+        const hasToken = Cookies.get("auth_token");
         const raw = Cookies.get("user_data");
-        if (raw) {
+        if (hasToken && raw) {
           setUser(JSON.parse(raw));
         }
       } catch (e) {
