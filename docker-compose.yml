@@ -1,0 +1,49 @@
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "8089:8089"
+    environment:
+      PORT: 8089
+      MONGODB_URL: mongodb://mongo:27017/idlelink-db
+      SECRET_KEY: ${SECRET_KEY:-change-this-to-a-long-random-string}
+      FRONTEND_URL: http://localhost:3000
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-IdleLink <onboarding@resend.dev>}
+      ESEWA_MERCHANT_CODE: ${ESEWA_MERCHANT_CODE:-EPAYTEST}
+      ESEWA_SECRET_KEY: ${ESEWA_SECRET_KEY:-8gBm/:&EnhH.1/q}
+      ESEWA_PAYMENT_URL: ${ESEWA_PAYMENT_URL:-https://rc-epay.esewa.com.np/api/epay/main/v2/form}
+      ESEWA_STATUS_URL: ${ESEWA_STATUS_URL:-https://rc.esewa.com.np/api/epay/transaction/status/}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    volumes:
+      - backend-uploads:/app/public/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8089
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_INTERNAL_URL: http://backend:8089
+
+volumes:
+  mongo-data:
+  backend-uploads:
