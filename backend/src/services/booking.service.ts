@@ -143,19 +143,71 @@ export class BookingService {
                 throw new HttpException(404, "Booking not found");
             }
 
-            const buyer = await userRepository.getUserById(booking.buyer.toString());
-            if (buyer) {
-                await userRepository.update(booking.buyer.toString(), {
-                    walletBalance: (buyer.walletBalance ?? 0) + booking.totalCost
+            // The seller has already been running the job for some fraction of
+            // the estimated time — refunding the buyer in full would mean the
+            // seller earns nothing for real work already done. Split the same
+            // way a completed booking is: the buyer gets back only the
+            // unearned remainder, the seller gets their normal 85% cut of the
+            // elapsed-progress share, and the platform keeps its 15% on that
+            // earned share.
+            const progress = this.computeProgress(booking);
+            const earnedAmount = Math.round(booking.totalCost * (progress / 100) * 100) / 100;
+            const refundAmount = Math.round((booking.totalCost - earnedAmount) * 100) / 100;
+            const sellerAmount = Math.round(earnedAmount * 0.85 * 100) / 100;
+            const commissionAmount = Math.round(earnedAmount * 0.15 * 100) / 100;
+
+            if (refundAmount > 0) {
+                const buyer = await userRepository.getUserById(booking.buyer.toString());
+                if (buyer) {
+                    await userRepository.update(booking.buyer.toString(), {
+                        walletBalance: (buyer.walletBalance ?? 0) + refundAmount
+                    });
+                }
+                await transactionService.record({
+                    user: booking.buyer.toString(),
+                    booking: booking._id.toString(),
+                    type: "job_payment",
+                    amount: refundAmount,
+                    description: `Refund: cancelled booking - ${booking.taskName}`
                 });
             }
-            await transactionService.record({
-                user: booking.buyer.toString(),
-                booking: booking._id.toString(),
-                type: "job_payment",
-                amount: booking.totalCost,
-                description: `Refund: cancelled booking - ${booking.taskName}`
-            });
+
+            if (sellerAmount > 0) {
+                const seller = await userRepository.getUserById(booking.seller.toString());
+                if (seller) {
+                    await userRepository.update(booking.seller.toString(), {
+                        walletBalance: (seller.walletBalance ?? 0) + sellerAmount
+                    });
+                }
+                await transactionService.record({
+                    user: booking.seller.toString(),
+                    booking: booking._id.toString(),
+                    type: "job_payment",
+                    amount: sellerAmount,
+                    description: `Partial payout (cancelled at ${Math.round(progress)}%): ${booking.taskName}`
+                });
+                await notificationService.notify(
+                    booking.seller.toString(),
+                    "payment_received",
+                    `You earned NPR ${sellerAmount} before "${booking.taskName}" was cancelled`
+                );
+            }
+
+            if (commissionAmount > 0) {
+                const admin = await userRepository.getFirstAdmin();
+                if (admin) {
+                    await userRepository.update(admin._id.toString(), {
+                        walletBalance: (admin.walletBalance ?? 0) + commissionAmount
+                    });
+                    await transactionService.record({
+                        user: admin._id.toString(),
+                        booking: booking._id.toString(),
+                        type: "commission",
+                        amount: commissionAmount,
+                        description: `Commission (cancelled booking): ${booking.taskName}`
+                    });
+                }
+            }
 
             await notificationService.notify(
                 booking.seller.toString(),
