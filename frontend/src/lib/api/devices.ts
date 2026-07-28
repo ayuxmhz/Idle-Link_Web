@@ -13,12 +13,16 @@ export interface Device {
     _id: string;
     owner: string;
     ownerUsername?: string;
+    ownerProfilePicture?: string;
     name: string;
     type: "GPU" | "CPU" | "ML-Ready" | "Gaming";
     specs: DeviceSpecs;
     hourlyRate: number;
     status: "live" | "offline";
     uptimePercent: number;
+    hasActiveBooking?: boolean;
+    avgRating?: number | null;
+    ratingCount?: number;
     createdAt: string;
     updatedAt: string;
 }

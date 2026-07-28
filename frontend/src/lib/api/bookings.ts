@@ -14,12 +14,14 @@ export interface Booking {
     buyer: string;
     buyerUsername?: string;
     taskName: string;
-    status: "pending" | "running" | "completed" | "cancelled";
+    status: "running" | "completed" | "cancelled";
     pricePerHour: number;
     startedAt: string;
     estimatedCompletionAt: string;
     totalCost: number;
     createdAt: string;
+    // only present for cancelled bookings
+    cancelReason?: string;
     // derived, only present for running bookings
     progress?: number;
     consoleLines?: ConsoleLine[];
@@ -28,6 +30,8 @@ export interface Booking {
     ramTotalGB?: number;
     gpuLabel?: string;
     gpuUtilPercent?: number;
+    // derived, only present for completed bookings
+    rating?: { stars: number; review?: string } | null;
 }
 
 export interface ListBookingsParams {
@@ -69,9 +73,18 @@ export const createBooking = async (deviceId: string, taskName: string, estimate
     }
 };
 
-export const updateBookingStatus = async (id: string, status: "cancelled" | "completed") => {
+export const cancelBooking = async (id: string, reason: string) => {
     try {
-        const response = await axiosInstance.patch(`${API.BOOKINGS.BASE}/${id}`, { status });
+        const response = await axiosInstance.patch(`${API.BOOKINGS.BASE}/${id}`, { status: "cancelled", reason });
+        return response.data;
+    } catch (error) {
+        return extractMessage(error, "Failed to cancel booking");
+    }
+};
+
+export const completeBooking = async (id: string) => {
+    try {
+        const response = await axiosInstance.patch(`${API.BOOKINGS.BASE}/${id}`, { status: "completed" });
         return response.data;
     } catch (error) {
         return extractMessage(error, "Failed to update booking");
