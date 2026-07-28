@@ -27,10 +27,10 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     ],
   },
   {
-    title: "Account",
+    title: "About",
     links: [
-      { label: "Log In", href: "/login" },
-      { label: "Sign Up", href: "/register" },
+      { label: "About IdleLink", href: "/roadmap" },
+      { label: "Privacy Policy", href: "/privacy" },
     ],
   },
 ];
