@@ -41,8 +41,8 @@ test.describe("Device inventory (insert, update, delete, retrieve)", () => {
         await page.locator('input[name="name"]').fill("E2E Test Device");
         await page.locator('input[name="cpu"]').fill("Ryzen 7");
         await page.locator('input[name="gpu"]').fill("RTX 4050");
-        await page.locator('input[name="ramGB"]').fill("16");
-        await page.locator('input[name="storageGB"]').fill("512");
+        await page.getByPlaceholder("16GB").fill("16GB");
+        await page.getByPlaceholder("512GB").fill("512GB");
         await page.locator('input[name="hourlyRate"]').fill("5");
         await page.getByRole("button", { name: "Save Device" }).click();
 
