@@ -7,6 +7,7 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import { ArrowLeft, Camera, ChevronRight, KeyRound, User2, Mail, Shield } from "lucide-react";
 import Image from "next/image";
+import { resolveImageUrl } from "@/lib/api/axios-instance";
 
 export default function AdminSettingsPage() {
   const { user, fetchUser, loading } = useUser();
@@ -19,9 +20,11 @@ export default function AdminSettingsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    if (user?.profilePicture) {
-      setPreviewImage(`http://localhost:8089${user.profilePicture}`);
-    }
+    (async () => {
+      if (user?.profilePicture) {
+        setPreviewImage(resolveImageUrl(user.profilePicture));
+      }
+    })();
   }, [user]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,7 +37,7 @@ export default function AdminSettingsPage() {
 
   const cancelPhotoUpload = () => {
     setSelectedFile(null);
-    setPreviewImage(user?.profilePicture ? `http://localhost:8089${user.profilePicture}` : null);
+    setPreviewImage(resolveImageUrl(user?.profilePicture));
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -62,8 +65,8 @@ export default function AdminSettingsPage() {
       setPhotoMessage("Profile photo updated!");
       setSelectedFile(null);
       await fetchUser();
-    } catch (err: any) {
-      setPhotoError(err.response?.data?.message || "Failed to update photo");
+    } catch (err) {
+      setPhotoError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to update photo");
       cancelPhotoUpload();
     } finally {
       setUploadingPhoto(false);

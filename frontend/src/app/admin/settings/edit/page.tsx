@@ -29,6 +29,10 @@ export default function AdminEditProfilePage() {
   const [verifyingEmail, setVerifyingEmail] = useState(false);
 
   const { register, handleSubmit, setValue, watch } = useForm<ProfileFormData>();
+  // react-hook-form's watch() is a known incompatibility with the React
+  // Compiler's memoization analysis — safe here since this component doesn't
+  // rely on compiler-inserted memoization for this derived value.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchedEmail = watch("email");
 
   const emailChanged = user && watchedEmail !== undefined && watchedEmail !== user.email;
@@ -70,8 +74,8 @@ export default function AdminEditProfilePage() {
       setVerifyEmailMsg("");
       setEmailOtpActive(false);
       await fetchUser();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "An error occurred");
+    } catch (err) {
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
@@ -89,8 +93,8 @@ export default function AdminEditProfilePage() {
       const devCode = res.data?.data?.devCode;
       setVerifyEmailMsg(`Verification code sent! ${devCode ? `(Dev Code: ${devCode})` : "Check your inbox."}`);
       setEmailOtpActive(true);
-    } catch (err: any) {
-      setVerifyEmailError(err.response?.data?.message || "Failed to send verification code.");
+    } catch (err) {
+      setVerifyEmailError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to send verification code.");
     } finally {
       setVerifyEmailSending(false);
     }
@@ -109,8 +113,8 @@ export default function AdminEditProfilePage() {
       setEmailOtpActive(false);
       setMessage("Email address verified successfully!");
       await fetchUser();
-    } catch (err: any) {
-      setVerifyEmailError(err.response?.data?.message || "Invalid or expired code.");
+    } catch (err) {
+      setVerifyEmailError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Invalid or expired code.");
     } finally {
       setVerifyingEmail(false);
     }

@@ -3,27 +3,29 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { Plus, Search, Edit2, Trash2, Shield, MoreVertical, Users } from "lucide-react";
-import UserFormModal from "../../../components/admin/UserFormModal";
+import { Plus, Search, Edit2, Trash2, Shield, Users } from "lucide-react";
+import UserFormModal, { AdminUser, UserFormPayload } from "../../../components/admin/UserFormModal";
 import ConfirmDeleteModal from "../../../components/admin/ConfirmDeleteModal";
+import { resolveImageUrl } from "@/lib/api/axios-instance";
+import Image from "next/image";
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   // Pagination & Search
   const [page, setPage] = useState(1);
   const limit = 10; // constant — no need for state
   const [search, setSearch] = useState("");
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
-  
+
   // Modals
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<any | null>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Debounce ref
@@ -40,17 +42,18 @@ export default function AdminUsersPage() {
       });
       setUsers(res.data.data);
       setMeta(res.data.meta);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch users");
+    } catch (err) {
+      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to fetch users");
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // stable — no deps that change
 
   // Only re-fetch when page changes. Search changes are handled by handleSearchChange.
   useEffect(() => {
-    fetchUsers(page, search);
+    (async () => {
+      await fetchUsers(page, search);
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]); // intentionally omit fetchUsers & search — fetchUsers is stable, search changes use debounce
 
@@ -70,17 +73,17 @@ export default function AdminUsersPage() {
     setIsFormOpen(true);
   };
 
-  const handleEditUser = (user: any) => {
+  const handleEditUser = (user: AdminUser) => {
     setSelectedUser(user);
     setIsFormOpen(true);
   };
 
-  const handleDeleteClick = (user: any) => {
+  const handleDeleteClick = (user: AdminUser) => {
     setUserToDelete(user);
     setIsDeleteOpen(true);
   };
 
-  const handleFormSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: UserFormPayload) => {
     const token = Cookies.get("auth_token");
     const headers = { Authorization: `Bearer ${token}` };
     
@@ -110,9 +113,9 @@ export default function AdminUsersPage() {
       } else {
         fetchUsers(page, search);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to delete user");
+      alert((err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to delete user");
     } finally {
       setIsDeleting(false);
     }
@@ -197,7 +200,14 @@ export default function AdminUsersPage() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-[#2a2b36] border border-[#3a3b46] flex items-center justify-center text-[#cbbefa] font-bold overflow-hidden">
                             {user.profilePicture ? (
-                              <img src={`http://localhost:8089${user.profilePicture}`} alt="Profile" className="w-full h-full object-cover" />
+                              <Image
+                                src={resolveImageUrl(user.profilePicture)!}
+                                alt="Profile"
+                                width={40}
+                                height={40}
+                                className="w-full h-full object-cover"
+                                unoptimized
+                              />
                             ) : (
                               (user.firstName?.[0] || user.username?.[0] || "U").toUpperCase()
                             )}

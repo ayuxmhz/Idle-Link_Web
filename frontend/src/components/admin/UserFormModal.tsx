@@ -1,11 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
 
+export interface AdminUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  role: string;
+  profilePicture?: string;
+  createdAt: string;
+}
+
+export interface UserFormPayload {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password?: string;
+  role: string;
+}
+
 interface UserFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => Promise<void>;
-  initialData?: any; // null if creating, user object if editing
+  onSubmit: (data: UserFormPayload) => Promise<void>;
+  initialData?: AdminUser | null; // null if creating, user object if editing
 }
 
 export default function UserFormModal({
@@ -28,7 +48,8 @@ export default function UserFormModal({
   const isEditing = !!initialData;
 
   useEffect(() => {
-    if (isOpen) {
+    if (!isOpen) return;
+    (async () => {
       if (initialData) {
         setFormData({
           firstName: initialData.firstName || "",
@@ -49,7 +70,7 @@ export default function UserFormModal({
         });
       }
       setError("");
-    }
+    })();
   }, [isOpen, initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -63,14 +84,14 @@ export default function UserFormModal({
     setError("");
 
     try {
-      const payload: any = { ...formData };
+      const payload: UserFormPayload = { ...formData };
       if (isEditing && !payload.password) {
         delete payload.password; // Don't send empty password on edit
       }
       await onSubmit(payload);
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "An error occurred");
+    } catch (err) {
+      setError((err as { response?: { data?: { message?: string } }; message?: string }).response?.data?.message || (err as { message?: string }).message || "An error occurred");
     } finally {
       setIsSubmitting(false);
     }
