@@ -1,6 +1,8 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Link from "next/link";
+import GetStartedSection from "@/components/GetStartedSection";
+import HowItWorksSection from "@/components/HowItWorksSection";
+import HeroSection from "@/components/HeroSection";
 
 const stats = [
   {
@@ -82,47 +84,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#0c0d16] text-white flex flex-col">
       <Navbar />
 
-      {/* ── Hero ── */}
-      <section className="flex flex-col items-center justify-center text-center px-4 py-28 relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[700px] h-[350px] bg-purple-900/[0.12] rounded-full blur-3xl" />
-        </div>
-
-        <h1 className="text-5xl md:text-[72px] font-bold leading-[1.1] tracking-tight mb-6 relative z-10">
-          Share your idle device,
-          <br />
-          earn daily.
-        </h1>
-
-        <p className="text-gray-400 text-lg md:text-xl max-w-2xl leading-relaxed mb-10 relative z-10">
-          Join the high-performance compute marketplace. Monetize your
-          underutilized hardware or access scalable, reliable GPU infrastructure
-          on demand.
-        </p>
-
-        <div className="flex items-center gap-4 relative z-10 flex-wrap justify-center">
-          <Link
-            href="/register"
-            className="flex items-center gap-2 px-6 py-3 border border-purple-500/60 text-white text-sm rounded-md hover:bg-purple-500/10 hover:border-purple-400 transition-all"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-              <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-            Start Earning
-          </Link>
-          <Link
-            href="/register"
-            className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-md transition-colors font-medium"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-              <path d="M7 8h10M7 12h6M7 16h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-            Rent Compute
-          </Link>
-        </div>
-      </section>
+      <HeroSection />
 
       {/* ── Stats ── */}
       <section className="px-6 md:px-14 pb-16">
@@ -166,6 +128,10 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      <GetStartedSection />
+
+      <HowItWorksSection />
 
       <Footer />
     </div>

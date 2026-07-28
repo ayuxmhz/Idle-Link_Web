@@ -50,9 +50,9 @@ export const deposit = async (amount: number) => {
     }
 };
 
-export const withdraw = async (amount: number) => {
+export const withdraw = async (amount: number, destination: string) => {
     try {
-        const response = await axiosInstance.post(API.TRANSACTIONS.WITHDRAW, { amount });
+        const response = await axiosInstance.post(API.TRANSACTIONS.WITHDRAW, { amount, destination });
         return response.data;
     } catch (error) {
         return extractMessage(error, "Failed to withdraw funds");

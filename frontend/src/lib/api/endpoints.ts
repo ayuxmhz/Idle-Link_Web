@@ -5,6 +5,7 @@ export const API = {
         LOGIN: "/api/v1/auth/login",
         FORGOT_PASSWORD: "/api/v1/auth/forgot-password",
         RESET_PASSWORD: "/api/v1/auth/reset-password",
+        GOOGLE: "/api/v1/auth/google",
     },
     DEVICES: {
         BASE: "/api/v1/devices",

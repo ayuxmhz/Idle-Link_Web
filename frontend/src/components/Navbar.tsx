@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useUser } from "@/app/context/UserContext";
 
 export default function Navbar() {
@@ -9,11 +10,11 @@ export default function Navbar() {
   return (
     <nav className="flex items-center justify-between px-6 md:px-14 py-4 border-b border-white/5">
       <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-        <img
+        <Image
           src="/logo.png"
           alt="IdleLink Logo"
-          width="24"
-          height="24"
+          width={24}
+          height={24}
           className="object-contain"
         />
         <span className="text-white">IdleLink</span>

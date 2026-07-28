@@ -1,4 +1,7 @@
-import { User, Zap } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { User, Zap, X } from "lucide-react";
 
 export interface ActiveJobViewModel {
   taskName: string;
@@ -17,6 +20,8 @@ interface ActiveJobCardProps {
 }
 
 export default function ActiveJobCard({ job }: ActiveJobCardProps) {
+  const [consoleOpen, setConsoleOpen] = useState(false);
+
   if (!job) {
     return (
       <div className="bg-[#16171f] border border-[#2a2b36] rounded-xl p-6 flex flex-col items-center justify-center text-center py-16">
@@ -36,11 +41,26 @@ export default function ActiveJobCard({ job }: ActiveJobCardProps) {
     <div className="bg-[#16171f] border border-[#2a2b36] rounded-xl p-6">
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-6">
-          {/* Circular Progress (CSS based) */}
-          <div className="relative w-16 h-16 rounded-full border-4 border-[#2a2b36] flex items-center justify-center">
-            <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-              <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white opacity-20" />
-              <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-white" strokeDasharray={circumference} strokeDashoffset={strokeDashoffset} />
+          {/* Circular Progress */}
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <svg
+              viewBox="0 0 64 64"
+              className="absolute inset-0 w-full h-full -rotate-90"
+              style={{ transformOrigin: "50% 50%" }}
+            >
+              <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-[#2a2b36]" />
+              <circle
+                cx="32"
+                cy="32"
+                r="28"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+                fill="transparent"
+                className="text-[#a39dfa] transition-[stroke-dashoffset] duration-700 ease-out"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+              />
             </svg>
             <span className="text-sm font-bold text-white relative z-10">{job.progress}%</span>
           </div>
@@ -80,10 +100,48 @@ export default function ActiveJobCard({ job }: ActiveJobCardProps) {
       </div>
 
       <div className="flex justify-end">
-        <button className="px-5 py-2 text-sm text-gray-300 border border-[#2a2b36] hover:bg-[#1a1b25] rounded-lg transition-colors">
+        <button
+          onClick={() => setConsoleOpen(true)}
+          className="px-5 py-2 text-sm text-gray-300 border border-[#2a2b36] hover:bg-[#1a1b25] rounded-lg transition-colors"
+        >
           View Console
         </button>
       </div>
+
+      {consoleOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#16171f] border border-[#2a2b36] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-[#2a2b36]">
+              <div>
+                <h3 className="text-lg font-bold text-white">{job.taskName}</h3>
+                <p className="text-xs text-gray-500">Live console output — {job.progress}% complete</p>
+              </div>
+              <button
+                onClick={() => setConsoleOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors p-1 rounded-lg hover:bg-[#2a2b36]"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="bg-[#101115] border-t border-[#1f2029] p-5 font-mono text-xs leading-relaxed text-gray-400 max-h-[60vh] overflow-y-auto">
+              {job.consoleLines.length === 0 ? (
+                <p className="text-gray-600">No output yet.</p>
+              ) : (
+                job.consoleLines.map((line, i) => (
+                  <p key={i} className={i === job.consoleLines.length - 1 ? "opacity-50" : undefined}>
+                    <span className="text-gray-500">{"> "}</span>
+                    {line.level === "warn" ? (
+                      <span className="text-orange-400">[WARN] {line.text}</span>
+                    ) : (
+                      <>[INFO] {line.text}</>
+                    )}
+                  </p>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

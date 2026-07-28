@@ -108,7 +108,7 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen bg-[#111218]">
       <Header />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 md:p-8">
 
         {/* Top Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
