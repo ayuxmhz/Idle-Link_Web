@@ -7,6 +7,8 @@ export interface IUser extends UserType, Document {
     createdAt: Date;
     updatedAt: Date;
     profilePicture?: string;
+    coverColor?: string;
+    coverImage?: string;
     phoneNumber?: string;
     isEmailVerified: boolean;
     isPhoneVerified: boolean;
@@ -20,6 +22,8 @@ const UserMongoSchema: Schema = new Schema<IUser>(
         password: { type: String, required: true },
         role: { type: String, enum: ["admin", "user"], default: "user" },
         profilePicture: { type: String },
+        coverColor: { type: String },
+        coverImage: { type: String },
         phoneNumber: { type: String },
         isEmailVerified: { type: Boolean, default: false },
         isPhoneVerified: { type: Boolean, default: false },

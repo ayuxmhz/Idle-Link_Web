@@ -17,6 +17,8 @@ export const UserSchema = z.object({
     password: PasswordSchema,
     role: z.enum(["admin", "user"]).default("user"),
     profilePicture: z.string().optional(),
+    coverColor: z.string().optional(),
+    coverImage: z.string().optional(),
     phoneNumber: z.string().optional(),
     isEmailVerified: z.boolean().default(false),
     isPhoneVerified: z.boolean().default(false),

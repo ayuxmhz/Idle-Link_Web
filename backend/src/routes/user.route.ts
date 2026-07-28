@@ -12,7 +12,15 @@ userRouter.post("/google", userController.googleAuth);
 userRouter.post("/forgot-password", userController.forgotPassword);
 userRouter.post("/reset-password", userController.resetPassword);
 userRouter.get("/whoami", authorizedMiddleware, userController.whoami);
-userRouter.put("/update", authorizedMiddleware, upload.single("profilePicture"), userController.updateProfile);
+userRouter.put(
+    "/update",
+    authorizedMiddleware,
+    upload.fields([
+        { name: "profilePicture", maxCount: 1 },
+        { name: "coverImage", maxCount: 1 }
+    ]),
+    userController.updateProfile
+);
 userRouter.put("/update-password", authorizedMiddleware, userController.updatePassword);
 userRouter.post("/send-verification-email", authorizedMiddleware, userController.sendEmailOtp);
 userRouter.post("/send-verification-phone", authorizedMiddleware, userController.sendPhoneOtp);

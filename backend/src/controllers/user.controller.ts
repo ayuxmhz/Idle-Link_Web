@@ -89,10 +89,21 @@ export class UserController {
             if (req.body.lastName !== undefined) updateData.lastName = req.body.lastName;
             if (req.body.email !== undefined) updateData.email = req.body.email;
             if (req.body.phoneNumber !== undefined) updateData.phoneNumber = req.body.phoneNumber;
+            // Profile cover customization — a solid color (hex) and/or an
+            // uploaded background image; the image takes visual precedence
+            // client-side when both are set.
+            if (req.body.coverColor !== undefined) updateData.coverColor = req.body.coverColor;
 
-            // Handle file upload
-            if (req.file) {
-                updateData.profilePicture = `/uploads/${req.file.filename}`;
+            // Handle file uploads (profilePicture + coverImage share this route)
+            const files = req.files as { profilePicture?: Express.Multer.File[]; coverImage?: Express.Multer.File[] } | undefined;
+            if (files?.profilePicture?.[0]) {
+                updateData.profilePicture = `/uploads/${files.profilePicture[0].filename}`;
+            }
+            if (files?.coverImage?.[0]) {
+                updateData.coverImage = `/uploads/${files.coverImage[0].filename}`;
+            } else if (req.body.coverImage === "") {
+                // Explicit clear request (no file attached, empty string sent)
+                updateData.coverImage = "";
             }
 
             const updatedUser = await userService.updateProfile(user._id, updateData);
