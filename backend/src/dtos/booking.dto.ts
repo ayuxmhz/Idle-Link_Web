@@ -3,7 +3,7 @@ import { z } from "zod";
 export const CreateBookingDTO = z.object({
     deviceId: z.string().min(1, "Device is required"),
     taskName: z.string().min(1, "Task name is required"),
-    estimatedHours: z.number().positive("Estimated hours must be greater than 0")
+    estimatedHours: z.number().min(0.5, "Estimated hours must be at least 0.5")
 });
 export type CreateBookingDTO = z.infer<typeof CreateBookingDTO>;
 
