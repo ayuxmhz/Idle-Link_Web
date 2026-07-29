@@ -34,7 +34,7 @@ test.describe("Bookings", () => {
 
         await page.goto("/dashboard/bookings");
         await expect(page).toHaveURL(/\/dashboard\/bookings/, { timeout: 10000 });
-        await expect(page.getByText(/bookings/i)).toBeVisible({ timeout: 10000 });
+        await expect(page.getByRole("main").getByRole("heading", { name: "Bookings" })).toBeVisible({ timeout: 10000 });
     });
 
     test("bookings page shows empty state for a brand-new user", async ({ page }) => {

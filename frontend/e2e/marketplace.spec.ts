@@ -33,7 +33,7 @@ test.describe("Marketplace", () => {
         await registerAndLogin(page, user);
 
         await page.goto("/dashboard/marketplace");
-        await expect(page.getByText(/marketplace/i)).toBeVisible({ timeout: 10000 });
+        await expect(page.getByRole("heading", { name: "Marketplace" })).toBeVisible({ timeout: 10000 });
     });
 
     test("marketplace shows empty state when no devices are listed", async ({ page }) => {
