@@ -97,7 +97,7 @@ const PANELS: Panel[] = [
   {
     title: "Find the Right Device with AI",
     description:
-      "Describe your workload in plain English and the AI Job Matcher, powered by Google Gemini, ranks live devices by fit with a match score and explanation.",
+      "Describe your workload in plain English and IdleLink AI ranks live devices by fit with a match score and explanation.",
     cta: { label: "Try the Matcher", href: "/register" },
     visual: <MatcherVisual />,
   },

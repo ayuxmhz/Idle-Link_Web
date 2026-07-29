@@ -63,7 +63,7 @@ export default function MatcherPage() {
             <Sparkles className="text-[#cbbefa]" size={22} />
             AI Job Matcher
           </h1>
-          <p className="text-sm text-gray-400 mt-1">Describe your task in plain English — Gemini ranks the best-fitting live devices for you.</p>
+          <p className="text-sm text-gray-400 mt-1">Describe your task in plain English and IdleLink Ai ranks the best-fitting live devices for you.</p>
         </div>
 
         {bookedMessage && (

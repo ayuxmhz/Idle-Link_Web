@@ -21,7 +21,7 @@ const SECTIONS = [
   {
     icon: <Sparkles size={18} />,
     title: "AI Job Matcher",
-    body: "Describe your workload in plain English and the Matcher (powered by Google Gemini) ranks currently live devices by fit, with a percentage match and a short explanation for each recommendation.",
+    body: "Describe your workload in plain English and IdleLink AI ranks currently live devices by fit, with a percentage match and a short explanation for each recommendation.",
   },
   {
     icon: <Star size={18} />,
