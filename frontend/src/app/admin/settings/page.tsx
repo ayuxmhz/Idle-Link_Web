@@ -104,8 +104,22 @@ export default function AdminSettingsPage() {
 
         {/* Profile Card */}
         <div className="bg-[#16171f] border border-[#2a2b36] rounded-xl overflow-hidden">
-          {/* Cover Banner */}
-          <div className="h-24 bg-gradient-to-r from-[#2c2057] via-[#3d2a7a] to-[#1a1b2e]" />
+          {/* Cover Banner — a custom image takes priority over a solid
+              color; both fall back to the default gradient. */}
+          <div
+            className={`h-24 ${
+              !user?.coverImage && !user?.coverColor
+                ? "bg-gradient-to-r from-[#2c2057] via-[#3d2a7a] to-[#1a1b2e]"
+                : ""
+            }`}
+            style={
+              user?.coverImage
+                ? { backgroundImage: `url(${resolveImageUrl(user.coverImage)})`, backgroundSize: "cover", backgroundPosition: "center" }
+                : user?.coverColor
+                ? { backgroundColor: user.coverColor }
+                : undefined
+            }
+          />
 
           {/* Avatar + Info */}
           <div className="px-6 pb-6">
