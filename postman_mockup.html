@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdleLink API - Postman Mockup</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 320px;
+            background-color: #252526;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .workspace-title {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-bar {
+            padding: 8px 16px;
+            border-bottom: 1px solid #333;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 3px;
+            padding: 4px 8px;
+            color: #ccc;
+            font-size: 12px;
+            box-sizing: border-box;
+        }
+
+        .collection-list {
+            padding: 8px 0;
+        }
+
+        .folder {
+            padding: 6px 16px 6px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #ccc;
+        }
+
+        .folder:hover {
+            background-color: #2a2d2e;
+        }
+
+        .folder-icon {
+            width: 14px;
+            height: 14px;
+            fill: #999;
+        }
+
+        .request {
+            padding: 6px 16px 6px 48px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #ccc;
+        }
+
+        .request:hover {
+            background-color: #2a2d2e;
+        }
+
+        .request.active {
+            background-color: #37373d;
+            color: #fff;
+        }
+
+        .method {
+            font-size: 10px;
+            font-weight: 700;
+            width: 35px;
+            text-align: right;
+        }
+
+        .method.get { color: #0cbb52; }
+        .method.post { color: #ffb400; }
+        .method.put { color: #097bed; }
+        .method.del { color: #eb2013; }
+
+        .main-pane {
+            flex: 1;
+            background-color: #1e1e1e;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="workspace-title">
+            <svg class="folder-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#ff6c37" stroke-width="2" fill="none" stroke-linejoin="round"/></svg>
+            IdleLink Workspace
+        </div>
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Filter">
+        </div>
+        
+        <div class="collection-list">
+            <!-- Auth -->
+            <div class="folder">
+                <svg class="folder-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                Auth
+            </div>
+            <div class="request"><span class="method post">POST</span> Register User</div>
+            <div class="request"><span class="method post">POST</span> Login</div>
+            <div class="request"><span class="method get">GET</span> WhoAmI (Profile)</div>
+
+            <!-- Devices -->
+            <div class="folder" style="margin-top: 4px;">
+                <svg class="folder-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                Devices
+            </div>
+            <div class="request"><span class="method get">GET</span> List All Devices</div>
+            <div class="request"><span class="method get">GET</span> Get Device by ID</div>
+            <div class="request active"><span class="method post">POST</span> Create New Listing</div>
+            <div class="request"><span class="method put">PUT</span> Update Listing</div>
+            <div class="request"><span class="method del">DEL</span> Delete Listing</div>
+
+            <!-- Bookings -->
+            <div class="folder" style="margin-top: 4px;">
+                <svg class="folder-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                Bookings
+            </div>
+            <div class="request"><span class="method post">POST</span> Request Booking</div>
+            <div class="request"><span class="method get">GET</span> My Bookings</div>
+            <div class="request"><span class="method put">PUT</span> Update Booking Status</div>
+
+            <!-- Matcher -->
+            <div class="folder" style="margin-top: 4px;">
+                <svg class="folder-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                AI Matcher
+            </div>
+            <div class="request"><span class="method post">POST</span> Match Workload to Hardware</div>
+
+            <!-- Transactions -->
+            <div class="folder" style="margin-top: 4px;">
+                <svg class="folder-icon" viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                Transactions & eSewa
+            </div>
+            <div class="request"><span class="method get">GET</span> Wallet History</div>
+            <div class="request"><span class="method post">POST</span> Initiate eSewa TopUp</div>
+            <div class="request"><span class="method post">POST</span> Verify eSewa Signature</div>
+        </div>
+    </div>
+
+    <div class="main-pane">
+        <!-- Just empty dark space to match Postman layout -->
+    </div>
+
+</body>
+</html>
