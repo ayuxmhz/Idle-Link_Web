@@ -20,6 +20,7 @@ export default function MarketplacePage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [activeType, setActiveType] = useState<(typeof TYPES)[number]>("All");
+  const [brokenAvatars, setBrokenAvatars] = useState<Set<string>>(new Set());
 
   const [bookingDevice, setBookingDevice] = useState<Device | null>(null);
   const [isBookOpen, setIsBookOpen] = useState(false);
@@ -130,7 +131,7 @@ export default function MarketplacePage() {
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-[#2a2b40] border border-[#3a3b50] flex items-center justify-center text-[10px] font-bold text-[#a78bfa] overflow-hidden">
-                      {device.ownerProfilePicture ? (
+                      {device.ownerProfilePicture && !brokenAvatars.has(device._id) ? (
                         <Image
                           src={resolveImageUrl(device.ownerProfilePicture)!}
                           alt={device.ownerUsername || "Owner"}
@@ -138,6 +139,7 @@ export default function MarketplacePage() {
                           height={24}
                           className="w-full h-full object-cover"
                           unoptimized
+                          onError={() => setBrokenAvatars((prev) => new Set(prev).add(device._id))}
                         />
                       ) : (
                         (device.ownerUsername?.[0] || "?").toUpperCase()

@@ -18,6 +18,7 @@ export default function DeviceReviewsModal({ isOpen, onClose, deviceId, deviceNa
   const [summary, setSummary] = useState<RatingSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [brokenAvatars, setBrokenAvatars] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!isOpen || !deviceId) return;
@@ -79,7 +80,7 @@ export default function DeviceReviewsModal({ isOpen, onClose, deviceId, deviceNa
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-[#2a2b40] border border-[#3a3b50] flex items-center justify-center text-[10px] font-bold text-[#a78bfa] overflow-hidden">
-                        {r.buyerProfilePicture ? (
+                        {r.buyerProfilePicture && !brokenAvatars.has(r._id) ? (
                           <Image
                             src={resolveImageUrl(r.buyerProfilePicture)!}
                             alt={r.buyerUsername || "Reviewer"}
@@ -87,6 +88,7 @@ export default function DeviceReviewsModal({ isOpen, onClose, deviceId, deviceNa
                             height={24}
                             className="w-full h-full object-cover"
                             unoptimized
+                            onError={() => setBrokenAvatars((prev) => new Set(prev).add(r._id))}
                           />
                         ) : (
                           (r.buyerUsername?.[0] || "?").toUpperCase()

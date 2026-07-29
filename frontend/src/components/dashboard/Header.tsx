@@ -37,6 +37,7 @@ export default function Header({ title = "Home" }: HeaderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const refreshUnreadCount = useCallback(async () => {
@@ -169,7 +170,7 @@ export default function Header({ title = "Home" }: HeaderProps) {
         </div>
 
         <Link href="/profile" className="text-gray-400 hover:text-white transition-colors overflow-hidden rounded-full w-8 h-8 flex items-center justify-center">
-          {user?.profilePicture ? (
+          {user?.profilePicture && !avatarError ? (
             <Image
               src={resolveImageUrl(user.profilePicture)!}
               alt="Profile"
@@ -177,6 +178,7 @@ export default function Header({ title = "Home" }: HeaderProps) {
               height={32}
               className="w-full h-full object-cover"
               unoptimized
+              onError={() => setAvatarError(true)}
             />
           ) : (
             <UserCircle size={28} />

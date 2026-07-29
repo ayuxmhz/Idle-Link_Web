@@ -16,6 +16,7 @@ export default function AdminUsersPage() {
 
   // Pagination & Search
   const [page, setPage] = useState(1);
+  const [brokenAvatars, setBrokenAvatars] = useState<Set<string>>(new Set());
   const limit = 10; // constant — no need for state
   const [search, setSearch] = useState("");
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 });
@@ -199,7 +200,7 @@ export default function AdminUsersPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-[#2a2b36] border border-[#3a3b46] flex items-center justify-center text-[#cbbefa] font-bold overflow-hidden">
-                            {user.profilePicture ? (
+                            {user.profilePicture && !brokenAvatars.has(user._id) ? (
                               <Image
                                 src={resolveImageUrl(user.profilePicture)!}
                                 alt="Profile"
@@ -207,6 +208,7 @@ export default function AdminUsersPage() {
                                 height={40}
                                 className="w-full h-full object-cover"
                                 unoptimized
+                                onError={() => setBrokenAvatars((prev) => new Set(prev).add(user._id))}
                               />
                             ) : (
                               (user.firstName?.[0] || user.username?.[0] || "U").toUpperCase()
