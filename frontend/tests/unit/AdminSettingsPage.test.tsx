@@ -48,7 +48,8 @@ describe("AdminSettingsPage", () => {
         const file = new File(["img"], "avatar.png", { type: "image/png" });
         await userEvent.upload(fileInput, file);
 
-        await userEvent.click(screen.getByRole("button", { name: "Save Photo" }));
+        await userEvent.click(await screen.findByRole("button", { name: "Apply" }));
+        await userEvent.click(await screen.findByRole("button", { name: "Save Photo" }));
         await waitFor(() => expect(axios.put).toHaveBeenCalled());
         expect(await screen.findByText(/Profile photo updated!/)).toBeInTheDocument();
         expect(fetchUserMock).toHaveBeenCalled();

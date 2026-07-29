@@ -8,6 +8,7 @@ import Link from "next/link";
 import { ArrowLeft, Camera, ChevronRight, KeyRound, User2, Mail, Shield, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { resolveImageUrl } from "@/lib/api/axios-instance";
+import ImageCropModal from "@/components/ImageCropModal";
 
 export default function ProfilePage() {
   const { user, fetchUser, loading } = useUser();
@@ -18,6 +19,7 @@ export default function ProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
 
   const [sendingCode, setSendingCode] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
@@ -73,9 +75,19 @@ export default function ProfilePage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setRawImageSrc(URL.createObjectURL(file));
+  };
 
+  const handleCropConfirm = (file: File) => {
     setSelectedFile(file);
     setPreviewImage(URL.createObjectURL(file));
+    setRawImageSrc(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCropCancel = () => {
+    setRawImageSrc(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const cancelPhotoUpload = () => {
@@ -195,6 +207,17 @@ export default function ProfilePage() {
                   className="hidden"
                   onChange={handlePhotoChange}
                 />
+
+                {rawImageSrc && (
+                  <ImageCropModal
+                    imageSrc={rawImageSrc}
+                    aspect={1}
+                    cropShape="round"
+                    fileName="profile-picture.png"
+                    onCancel={handleCropCancel}
+                    onConfirm={handleCropConfirm}
+                  />
+                )}
 
                 {/* Camera button */}
                 <button

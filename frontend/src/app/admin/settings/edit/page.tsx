@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import Link from "next/link";
 import { ArrowLeft, User2, CheckCircle2, AlertCircle, Send, ShieldCheck, Palette, ImagePlus, X } from "lucide-react";
 import { resolveImageUrl } from "@/lib/api/axios-instance";
+import ImageCropModal from "@/components/ImageCropModal";
 
 const COVER_COLOR_PRESETS = [
   "#2c2057",
@@ -37,6 +38,7 @@ export default function AdminEditProfilePage() {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [removeCoverImage, setRemoveCoverImage] = useState(false);
+  const [rawCoverImageSrc, setRawCoverImageSrc] = useState<string | null>(null);
 
   // OTP Email Verification states
   const [verifyEmailSending, setVerifyEmailSending] = useState(false);
@@ -68,9 +70,18 @@ export default function AdminEditProfilePage() {
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setRawCoverImageSrc(URL.createObjectURL(file));
+  };
+
+  const handleCoverCropConfirm = (file: File) => {
     setCoverImageFile(file);
     setCoverImagePreview(URL.createObjectURL(file));
     setRemoveCoverImage(false);
+    setRawCoverImageSrc(null);
+  };
+
+  const handleCoverCropCancel = () => {
+    setRawCoverImageSrc(null);
   };
 
   const handleRemoveCoverImage = () => {
@@ -251,6 +262,16 @@ export default function AdminEditProfilePage() {
                 Upload background image
                 <input type="file" accept="image/*" onChange={handleCoverImageChange} className="hidden" />
               </label>
+              {rawCoverImageSrc && (
+                <ImageCropModal
+                  imageSrc={rawCoverImageSrc}
+                  aspect={3}
+                  cropShape="rect"
+                  fileName="cover-image.png"
+                  onCancel={handleCoverCropCancel}
+                  onConfirm={handleCoverCropConfirm}
+                />
+              )}
               {coverImagePreview && (
                 <button
                   type="button"
